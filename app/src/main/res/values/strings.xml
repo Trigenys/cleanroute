@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">CleanRoute</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_collection">Collecte</string>
+    <string name="nav_clients">Clients</string>
+    <string name="nav_more">Plus</string>
+
+    <string name="home_greeting">Bonjour 👋</string>
+    <string name="home_subtitle">Votre activité en un coup d’œil</string>
+    <string name="today">Aujourd’hui</string>
+    <string name="no_route_loaded">Aucune tournée chargée</string>
+    <string name="offline_ready">Prêt hors connexion</string>
+    <string name="start_route">Commencer une tournée</string>
+    <string name="overview">Vue d’ensemble</string>
+    <string name="active_clients">Clients actifs</string>
+    <string name="unpaid">Impayés</string>
+    <string name="add_client">Ajouter un client</string>
+
+    <string name="collection_placeholder">Les tournées du jour apparaîtront ici dès que le module terrain sera branché.</string>
+    <string name="clients_placeholder">La liste clients, la recherche et les fiches seront branchées sur la base locale.</string>
+    <string name="more_placeholder">Paiements, import Excel, paramètres et autres outils seront regroupés ici.</string>
 </resources>
