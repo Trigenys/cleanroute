@@ -1,0 +1,5 @@
+external_id,name,phone,zone,address_label,collection_frequency,service_day,monthly_fee_xaf,status,notes
+CR-DEMO-001,Amina Demo,+237690000001,Zone Nord,Carrefour A,weekly,Monday,5000,active,
+CR-DEMO-002,Boris Demo,+237690000002,Zone Nord,Rue B,weekly,Monday,5000,active,Gate usually closed
+CR-DEMO-003,Clarisse Demo,+237690000003,Zone Centre,Immeuble C,biweekly,Thursday,7500,active,
+CR-DEMO-004,David Demo,+237690000004,Zone Sud,Entrée D,monthly,Saturday,10000,suspended,Fixture only
