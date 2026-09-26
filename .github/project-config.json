@@ -10,6 +10,18 @@
   },
   "bootstrap": {
     "boardViewName": "AppFactory Board",
-    "phases": ["Foundation", "MVP", "Visual QA", "Hardening", "Release"]
+    "phases": [
+      "Discovery",
+      "Foundation",
+      "Offline Core",
+      "Field Operations",
+      "Payments",
+      "Retention",
+      "Mapping & Routing",
+      "Visual QA",
+      "Hardening",
+      "Pilot",
+      "Release"
+    ]
   }
 }
