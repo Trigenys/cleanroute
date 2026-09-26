@@ -3,6 +3,5 @@
   "projectType": "mobile",
   "platform": "android",
   "preset": "android-compose",
-  "blueprintVersion": 3,
-  "complete": false
+  "blueprintVersion": 3
 }
