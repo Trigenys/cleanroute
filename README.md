@@ -4,7 +4,7 @@
 
 CleanRoute is a Trigenys product experiment designed for operators who currently run customer lists, collection rounds and payments with a phone plus Excel. The product goal is deliberately simple: make the daily field workflow easier than the spreadsheet without trapping the business in a complex ERP.
 
-**Status:** Pilot readiness — awaiting approved/anonymized workbook validation and first operator field session  
+**Status:** Pilot readiness — canonical workbook v1 validated; awaiting first operator field session  
 **Repository:** public during the product-validation phase  
 **Delivery board:** https://github.com/orgs/Trigenys/projects/5
 
@@ -50,8 +50,9 @@ CleanRoute follows the RAIDER **Adopt → Adapt → Learn → Build** discipline
 
 - **Adopt:** Trigenys AppFactory Android foundation.
 - **Learn:** ODK Collect for resilient field/offline patterns.
-- **Adopt later behind an adapter:** MapLibre Compose for mapping.
-- **Evaluate later:** GraphHopper + jsprit for routing/VRP optimization.
+- **Adopt for isolated prototype:** MapLibre Compose behind a CleanRoute-owned mapping boundary.
+- **Learn:** GraphHopper as a future road-metric provider.
+- **Adapt:** jsprit for route-order experiments behind CleanRoute-owned contracts.
 - **Do not copy:** unlicensed or mismatched waste-management repositories.
 
 The rationale and license notes live in [ADR-001](docs/architecture/ADR-001-reuse-first.md).
@@ -80,6 +81,16 @@ Changes must stay:
 - **Retroactive** — improvements have a safe adoption path for existing installations.
 
 Significant failures and near misses are recorded in `docs/engineering/lessons-learned.md`.
+
+## Landing page
+
+The public product page is deployed with GitHub Pages from `site/`.
+
+- GitHub Pages fallback: https://trigenys.github.io/cleanroute/
+- Custom domain target: https://cleanroute.trigenys.com/
+- Deployment notes: [docs/deployment/github-pages.md](docs/deployment/github-pages.md)
+
+The landing deliberately distinguishes shipped MVP features from mapping/routing spikes and the future remote-sync contract.
 
 ## Build
 

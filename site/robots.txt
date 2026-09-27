@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cleanroute.trigenys.com/sitemap.xml
