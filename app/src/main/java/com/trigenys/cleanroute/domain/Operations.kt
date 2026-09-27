@@ -55,7 +55,25 @@ interface CollectionVisitRepository {
 }
 
 interface PaymentRepository {
+    val methods: List<PaymentMethodOption>
+
     suspend fun get(id: PaymentId): Payment?
+
+    suspend fun record(
+        draft: PaymentDraft,
+        at: Instant
+    ): Payment
+
+    suspend fun reverse(
+        id: PaymentId,
+        at: Instant
+    ): Payment
+
+    suspend fun arrears(
+        servicePeriod: YearMonth,
+        query: String
+    ): List<ArrearsEntry>
+
     suspend fun upsert(payment: Payment)
 }
 

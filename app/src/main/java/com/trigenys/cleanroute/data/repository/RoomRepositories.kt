@@ -6,6 +6,7 @@ import com.trigenys.cleanroute.data.local.entity.ServicePlanEntity
 import com.trigenys.cleanroute.data.local.entity.ZoneEntity
 import com.trigenys.cleanroute.data.local.toDomain
 import com.trigenys.cleanroute.data.local.toEntity
+import com.trigenys.cleanroute.domain.ArrearsEntry
 import com.trigenys.cleanroute.domain.CollectionCadence
 import com.trigenys.cleanroute.domain.CollectionVisit
 import com.trigenys.cleanroute.domain.CollectionVisitId
@@ -17,8 +18,11 @@ import com.trigenys.cleanroute.domain.CustomerId
 import com.trigenys.cleanroute.domain.CustomerProfile
 import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.domain.Payment
+import com.trigenys.cleanroute.domain.PaymentDraft
 import com.trigenys.cleanroute.domain.PaymentId
 import com.trigenys.cleanroute.domain.PaymentLedger
+import com.trigenys.cleanroute.domain.PaymentMethodOption
+import com.trigenys.cleanroute.domain.PaymentMethods
 import com.trigenys.cleanroute.domain.PaymentRepository
 import com.trigenys.cleanroute.domain.ServicePlanId
 import com.trigenys.cleanroute.domain.ZoneId
@@ -168,8 +172,78 @@ class RoomCollectionVisitRepository(
 class RoomPaymentRepository(
     private val database: CleanRouteDatabase
 ) : PaymentRepository {
+    override val methods: List<PaymentMethodOption> = PaymentMethods.DEFAULT
+
     override suspend fun get(id: PaymentId): Payment? =
         database.paymentDao().get(id.value)?.toDomain()
+
+    override suspend fun record(
+        draft: PaymentDraft,
+        at: Instant
+    ): Payment {
+        val paymentId = PaymentId(
+            UUID.nameUUIDFromBytes(
+                "payment:${draft.submissionId}".toByteArray(StandardCharsets.UTF_8)
+            ).toString()
+        )
+
+        val existing = get(paymentId)
+        if (existing != null) {
+            require(
+                existing.customerId == draft.customerId &&
+                    existing.servicePeriod == draft.servicePeriod &&
+                    existing.amountXaf == draft.amountXaf &&
+                    existing.method == draft.method
+            ) {
+                "Cet identifiant de paiement a déjà été utilisé pour une autre opération."
+            }
+            return existing
+        }
+
+        val payment = Payment(
+            id = paymentId,
+            customerId = draft.customerId,
+            servicePeriod = draft.servicePeriod,
+            amountXaf = draft.amountXaf,
+            method = draft.method,
+            recordedAt = at
+        )
+        upsert(payment)
+        return payment
+    }
+
+    override suspend fun reverse(
+        id: PaymentId,
+        at: Instant
+    ): Payment {
+        val current = get(id) ?: error("Paiement introuvable.")
+        val reversed = current.reverse(at)
+        if (reversed != current) {
+            upsert(reversed)
+        }
+        return reversed
+    }
+
+    override suspend fun arrears(
+        servicePeriod: YearMonth,
+        query: String
+    ): List<ArrearsEntry> =
+        database.paymentDao()
+            .arrears(
+                servicePeriod = servicePeriod.toString(),
+                query = query.trim()
+            )
+            .map { row ->
+                ArrearsEntry(
+                    customerId = CustomerId(row.customerId),
+                    customerName = row.customerName,
+                    phone = row.phone,
+                    zoneName = row.zoneName,
+                    monthlyFeeXaf = row.monthlyFeeXaf,
+                    paidXaf = row.paidXaf,
+                    outstandingXaf = row.outstandingXaf
+                )
+            }
 
     override suspend fun upsert(payment: Payment) {
         database.paymentDao().upsertWithOutbox(

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.trigenys.cleanroute.data.local.ArrearsRow
 import com.trigenys.cleanroute.data.local.entity.OutboxOperationEntity
 import com.trigenys.cleanroute.data.local.entity.PaymentEntity
 
@@ -42,6 +43,73 @@ abstract class PaymentDao {
         customerId: String,
         limit: Int
     ): List<PaymentEntity>
+
+    @Query(
+        """
+        SELECT
+            c.id AS customerId,
+            c.name AS customerName,
+            c.phone AS phone,
+            COALESCE(z.name, '') AS zoneName,
+            COALESCE(sp.monthlyFeeXaf, 0) AS monthlyFeeXaf,
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN p.state = 'RECORDED'
+                         AND p.servicePeriod = :servicePeriod
+                        THEN p.amountXaf
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS paidXaf,
+            CASE
+                WHEN COALESCE(sp.monthlyFeeXaf, 0) -
+                     COALESCE(
+                         SUM(
+                             CASE
+                                 WHEN p.state = 'RECORDED'
+                                  AND p.servicePeriod = :servicePeriod
+                                 THEN p.amountXaf
+                                 ELSE 0
+                             END
+                         ),
+                         0
+                     ) > 0
+                THEN COALESCE(sp.monthlyFeeXaf, 0) -
+                     COALESCE(
+                         SUM(
+                             CASE
+                                 WHEN p.state = 'RECORDED'
+                                  AND p.servicePeriod = :servicePeriod
+                                 THEN p.amountXaf
+                                 ELSE 0
+                             END
+                         ),
+                         0
+                     )
+                ELSE 0
+            END AS outstandingXaf
+        FROM customers c
+        LEFT JOIN zones z ON z.id = c.zoneId
+        LEFT JOIN service_plans sp ON sp.id = c.servicePlanId
+        LEFT JOIN payments p ON p.customerId = c.id
+        WHERE c.status = 'ACTIVE'
+          AND (
+              :query = ''
+              OR lower(c.name) LIKE '%' || lower(:query) || '%'
+              OR lower(COALESCE(c.phone, '')) LIKE '%' || lower(:query) || '%'
+              OR lower(COALESCE(z.name, '')) LIKE '%' || lower(:query) || '%'
+          )
+        GROUP BY c.id, c.name, c.phone, z.name, sp.monthlyFeeXaf
+        HAVING outstandingXaf > 0
+        ORDER BY outstandingXaf DESC, c.name COLLATE NOCASE ASC
+        """
+    )
+    abstract suspend fun arrears(
+        servicePeriod: String,
+        query: String
+    ): List<ArrearsRow>
 
     @Upsert
     protected abstract suspend fun upsertEntity(payment: PaymentEntity)

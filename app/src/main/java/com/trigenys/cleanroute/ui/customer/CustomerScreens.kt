@@ -55,6 +55,8 @@ import com.trigenys.cleanroute.domain.CustomerStatus
 import com.trigenys.cleanroute.domain.Payment
 import com.trigenys.cleanroute.domain.PaymentId
 import com.trigenys.cleanroute.domain.PaymentMethod
+import com.trigenys.cleanroute.domain.PaymentMethods
+import com.trigenys.cleanroute.domain.PaymentState
 import com.trigenys.cleanroute.domain.RouteDayId
 import com.trigenys.cleanroute.domain.ServicePlan
 import com.trigenys.cleanroute.domain.ServicePlanId
@@ -215,7 +217,9 @@ fun CustomerDetailScreen(
     profile: CustomerProfile,
     innerPadding: PaddingValues,
     onBack: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onRecordPayment: () -> Unit = {},
+    onReversePayment: (Payment) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -327,6 +331,15 @@ fun CustomerDetailScreen(
                         MaterialTheme.colorScheme.tertiary
                     }
                 )
+
+                if (profile.outstandingThisPeriodXaf > 0L) {
+                    Button(
+                        onClick = onRecordPayment,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Enregistrer un paiement")
+                    }
+                }
             }
         }
 
@@ -354,9 +367,9 @@ fun CustomerDetailScreen(
                 )
             }
             items(profile.recentPayments, key = { "payment-${it.id.value}" }) { payment ->
-                ActivityRow(
-                    title = "Paiement · ${formatXaf(payment.amountXaf)}",
-                    detail = payment.servicePeriod.toString()
+                PaymentActivityRow(
+                    payment = payment,
+                    onReverse = { onReversePayment(payment) }
                 )
             }
         }
@@ -389,6 +402,51 @@ private fun ActivityRow(title: String, detail: String) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+private fun PaymentActivityRow(
+    payment: Payment,
+    onReverse: () -> Unit
+) {
+    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Paiement · ${formatXaf(payment.amountXaf)}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    "${payment.servicePeriod} · ${PaymentMethods.labelFor(payment.method)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            StatusChip(
+                text = if (payment.state == PaymentState.RECORDED) "Enregistré" else "Annulé",
+                tone = if (payment.state == PaymentState.RECORDED) {
+                    StatusTone.SUCCESS
+                } else {
+                    StatusTone.NEUTRAL
+                }
+            )
+        }
+
+        if (payment.state == PaymentState.REVERSED) {
+            Text(
+                "Annulé le ${payment.reversedAt}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            TextButton(onClick = onReverse) {
+                Text("Annuler ce paiement")
+            }
+        }
     }
 }
 

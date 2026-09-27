@@ -21,14 +21,21 @@ import com.trigenys.cleanroute.domain.CustomerDraft
 import com.trigenys.cleanroute.domain.CustomerId
 import com.trigenys.cleanroute.domain.CustomerProfile
 import com.trigenys.cleanroute.domain.CustomerRepository
+import com.trigenys.cleanroute.domain.Payment
+import com.trigenys.cleanroute.domain.PaymentDraft
+import com.trigenys.cleanroute.domain.PaymentRepository
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.util.UUID
 import kotlinx.coroutines.launch
+import com.trigenys.cleanroute.ui.payment.PaymentEntryDialog
+import com.trigenys.cleanroute.ui.payment.PaymentReverseDialog
 
 @Composable
 fun CustomerDirectoryRoute(
     repository: CustomerRepository,
+    paymentRepository: PaymentRepository,
     innerPadding: PaddingValues
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -41,6 +48,9 @@ fun CustomerDirectoryRoute(
     var showEditor by rememberSaveable { mutableStateOf(false) }
     var refreshVersion by remember { mutableIntStateOf(0) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    var paymentSubmissionId by remember { mutableStateOf<String?>(null) }
+    var paymentError by remember { mutableStateOf<String?>(null) }
+    var paymentToReverse by remember { mutableStateOf<Payment?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(query, refreshVersion) {
@@ -74,6 +84,14 @@ fun CustomerDirectoryRoute(
             onEdit = {
                 editorProfile = profile
                 showEditor = true
+            },
+            onRecordPayment = {
+                paymentError = null
+                paymentSubmissionId = UUID.randomUUID().toString()
+            },
+            onReversePayment = { payment ->
+                paymentError = null
+                paymentToReverse = payment
             }
         )
         selectedCustomerId != null -> CustomerLoadingScreen(innerPadding)
@@ -89,6 +107,60 @@ fun CustomerDirectoryRoute(
                 showEditor = true
             },
             onCustomerSelected = { selectedCustomerId = it.customer.id.value }
+        )
+    }
+
+    val currentProfile = profile
+    val currentSubmissionId = paymentSubmissionId
+    if (currentProfile != null && currentSubmissionId != null) {
+        PaymentEntryDialog(
+            customerId = currentProfile.customer.id,
+            customerName = currentProfile.customer.name,
+            servicePeriod = YearMonth.now(),
+            suggestedAmountXaf = currentProfile.outstandingThisPeriodXaf,
+            submissionId = currentSubmissionId,
+            methods = paymentRepository.methods,
+            errorMessage = paymentError,
+            onDismiss = {
+                paymentSubmissionId = null
+                paymentError = null
+            },
+            onSave = { draft: PaymentDraft ->
+                scope.launch {
+                    runCatching {
+                        paymentRepository.record(draft, Instant.now())
+                    }.onSuccess {
+                        paymentSubmissionId = null
+                        paymentError = null
+                        refreshVersion += 1
+                    }.onFailure { error ->
+                        paymentError = error.message ?: "Impossible d’enregistrer le paiement."
+                    }
+                }
+            }
+        )
+    }
+
+    paymentToReverse?.let { payment ->
+        PaymentReverseDialog(
+            payment = payment,
+            onDismiss = {
+                paymentToReverse = null
+                paymentError = null
+            },
+            onConfirm = {
+                scope.launch {
+                    runCatching {
+                        paymentRepository.reverse(payment.id, Instant.now())
+                    }.onSuccess {
+                        paymentToReverse = null
+                        paymentError = null
+                        refreshVersion += 1
+                    }.onFailure { error ->
+                        paymentError = error.message ?: "Impossible d’annuler le paiement."
+                    }
+                }
+            }
         )
     }
 
