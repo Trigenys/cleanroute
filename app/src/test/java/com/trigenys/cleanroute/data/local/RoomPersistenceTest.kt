@@ -51,7 +51,8 @@ class RoomPersistenceTest {
             updatedAt = createdAt
         )
 
-        openDatabase().use { database ->
+        val database = openDatabase()
+        try {
             database.catalogDao().upsertZone(
                 ZoneEntity(id = "zone-1", name = "Zone Nord")
             )
@@ -70,12 +71,17 @@ class RoomPersistenceTest {
 
             assertEquals(1, database.outboxDao().count())
             assertEquals(customer, repository.get(customer.id))
+        } finally {
+            database.close()
         }
 
-        openDatabase().use { reopened ->
+        val reopened = openDatabase()
+        try {
             val repository = RoomCustomerRepository(reopened)
             assertNotNull(repository.get(customer.id))
             assertEquals(1, reopened.outboxDao().count())
+        } finally {
+            reopened.close()
         }
     }
 
