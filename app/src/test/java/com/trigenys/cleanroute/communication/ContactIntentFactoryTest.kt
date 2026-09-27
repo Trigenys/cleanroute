@@ -31,7 +31,7 @@ class ContactIntentFactoryTest {
         )
 
         assertEquals(Intent.ACTION_VIEW, intent?.action)
-        assertEquals("com.whatsapp", intent?.package)
+        assertEquals("com.whatsapp", intent?.`package`)
         assertEquals("wa.me", intent?.data?.host)
         assertEquals("/237690000001", intent?.data?.path)
         assertEquals(message, intent?.data?.getQueryParameter("text"))
