@@ -1,0 +1,34 @@
+{
+  "protocolVersion": 1,
+  "nextCursor": "20",
+  "hasMore": false,
+  "changes": [
+    {
+      "serverRevision": 19,
+      "aggregateType": "collection_visit",
+      "aggregateId": "visit-789",
+      "mutation": "upsert",
+      "payload": {
+        "id": "visit-789",
+        "customerId": "customer-123",
+        "routeDayId": "route-2026-09-27-zone-bonapriso",
+        "scheduledDate": "2026-09-27",
+        "status": "collected",
+        "revision": 2
+      }
+    },
+    {
+      "serverRevision": 20,
+      "aggregateType": "customer",
+      "aggregateId": "customer-removed",
+      "mutation": "delete",
+      "payload": null,
+      "tombstone": {
+        "aggregateType": "customer",
+        "aggregateId": "customer-removed",
+        "deletedAt": "2026-09-27T10:00:00Z",
+        "serverRevision": 20
+      }
+    }
+  ]
+}

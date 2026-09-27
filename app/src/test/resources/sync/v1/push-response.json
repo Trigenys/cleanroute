@@ -1,0 +1,15 @@
+{
+  "protocolVersion": 1,
+  "acks": [
+    {
+      "operationId": "upsert_customer:customer-123:2026-09-27T09:00:00Z",
+      "status": "applied",
+      "serverRevision": 18
+    },
+    {
+      "operationId": "upsert_payment:payment-456:recorded",
+      "status": "duplicate",
+      "serverRevision": 16
+    }
+  ]
+}
