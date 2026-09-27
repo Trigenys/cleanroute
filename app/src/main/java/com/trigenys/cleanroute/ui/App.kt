@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.CustomerRepository
+import com.trigenys.cleanroute.domain.DashboardRepository
 import com.trigenys.cleanroute.domain.PaymentRepository
 import com.trigenys.cleanroute.ui.collection.CollectionWorkflowRoute
 import com.trigenys.cleanroute.ui.collection.ZoneWorkloadScreen
@@ -34,6 +35,7 @@ import com.trigenys.cleanroute.ui.components.KpiTile
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryRoute
+import com.trigenys.cleanroute.ui.dashboard.DashboardRoute
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.more.MoreRoute
 import com.trigenys.cleanroute.ui.navigation.AppDestination
@@ -44,6 +46,7 @@ import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 fun App(
     customerRepository: CustomerRepository? = null,
     collectionWorkflowRepository: CollectionWorkflowRepository? = null,
+    dashboardRepository: DashboardRepository? = null,
     paymentRepository: PaymentRepository? = null,
     spreadsheetService: CustomerSpreadsheetService? = null
 ) {
@@ -56,6 +59,7 @@ fun App(
         onDestinationSelected = { selectedDestination = it },
         customerRepository = customerRepository,
         collectionWorkflowRepository = collectionWorkflowRepository,
+        dashboardRepository = dashboardRepository,
         paymentRepository = paymentRepository,
         spreadsheetService = spreadsheetService
     )
@@ -67,6 +71,7 @@ private fun CleanRouteShell(
     onDestinationSelected: (AppDestination) -> Unit,
     customerRepository: CustomerRepository?,
     collectionWorkflowRepository: CollectionWorkflowRepository?,
+    dashboardRepository: DashboardRepository?,
     paymentRepository: PaymentRepository?,
     spreadsheetService: CustomerSpreadsheetService?
 ) {
@@ -80,11 +85,23 @@ private fun CleanRouteShell(
         }
     ) { innerPadding ->
         when (selectedDestination) {
-            AppDestination.HOME -> FoundationHome(
-                innerPadding = innerPadding,
-                onOpenCollection = { onDestinationSelected(AppDestination.COLLECTION) },
-                onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) }
-            )
+            AppDestination.HOME -> {
+                if (dashboardRepository == null) {
+                    FoundationHome(
+                        innerPadding = innerPadding,
+                        onOpenCollection = { onDestinationSelected(AppDestination.COLLECTION) },
+                        onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) }
+                    )
+                } else {
+                    DashboardRoute(
+                        repository = dashboardRepository,
+                        innerPadding = innerPadding,
+                        onOpenCollection = { onDestinationSelected(AppDestination.COLLECTION) },
+                        onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) },
+                        onOpenPayments = { onDestinationSelected(AppDestination.MORE) }
+                    )
+                }
+            }
 
             AppDestination.COLLECTION -> {
                 if (collectionWorkflowRepository == null) {

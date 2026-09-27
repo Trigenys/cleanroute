@@ -8,6 +8,7 @@ import androidx.room.migration.Migration
 import com.trigenys.cleanroute.data.local.dao.CatalogDao
 import com.trigenys.cleanroute.data.local.dao.CollectionVisitDao
 import com.trigenys.cleanroute.data.local.dao.CustomerDao
+import com.trigenys.cleanroute.data.local.dao.DashboardDao
 import com.trigenys.cleanroute.data.local.dao.OutboxDao
 import com.trigenys.cleanroute.data.local.dao.PaymentDao
 import com.trigenys.cleanroute.data.local.dao.RouteDayDao
@@ -41,6 +42,7 @@ import com.trigenys.cleanroute.data.local.entity.ZoneEntity
 abstract class CleanRouteDatabase : RoomDatabase() {
     abstract fun catalogDao(): CatalogDao
     abstract fun customerDao(): CustomerDao
+    abstract fun dashboardDao(): DashboardDao
     abstract fun collectionVisitDao(): CollectionVisitDao
     abstract fun routeDayDao(): RouteDayDao
     abstract fun paymentDao(): PaymentDao
