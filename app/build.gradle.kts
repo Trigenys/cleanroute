@@ -19,6 +19,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildTypes {
+        create("pilot") {
+            initWith(getByName("release"))
+            isDebuggable = true
+            applicationIdSuffix = ".pilot"
+            versionNameSuffix = "-pilot"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
+    }
+
     buildFeatures {
         compose = true
     }

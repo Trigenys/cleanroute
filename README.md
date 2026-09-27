@@ -4,7 +4,7 @@
 
 CleanRoute is a Trigenys product experiment designed for operators who currently run customer lists, collection rounds and payments with a phone plus Excel. The product goal is deliberately simple: make the daily field workflow easier than the spreadsheet without trapping the business in a complex ERP.
 
-**Status:** Discovery / foundation  
+**Status:** Pilot readiness — awaiting approved/anonymized workbook validation and first operator field session  
 **Repository:** public during the product-validation phase  
 **Delivery board:** https://github.com/orgs/Trigenys/projects/5
 
@@ -27,7 +27,7 @@ The first usable release is gated on a real field workflow, not on feature count
 - call and WhatsApp actions;
 - a compact owner dashboard.
 
-Mapping, route optimization, remote multi-device sync and referral mechanics are intentionally downstream of the core field loop.
+Mapping/route optimization remain optional experiments, while remote multi-device sync is contract-defined but not implemented. The field MVP remains local-first and usable without either capability.
 
 ## Android baseline
 
