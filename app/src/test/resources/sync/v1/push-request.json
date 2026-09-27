@@ -1,0 +1,25 @@
+{
+  "protocolVersion": 1,
+  "workspaceId": "workspace-demo",
+  "deviceId": "device-collector-a",
+  "operations": [
+    {
+      "operationId": "upsert_customer:customer-123:2026-09-27T09:00:00Z",
+      "aggregateType": "customer",
+      "aggregateId": "customer-123",
+      "mutation": "upsert",
+      "clientRevision": "2026-09-27T09:00:00Z",
+      "baseServerRevision": 17,
+      "occurredAt": "2026-09-27T09:00:00Z",
+      "payload": {
+        "id": "customer-123",
+        "name": "Amina Demo",
+        "phone": "+237690000001",
+        "zoneId": "zone-bonapriso",
+        "servicePlanId": "plan-customer-123",
+        "status": "active",
+        "updatedAt": "2026-09-27T09:00:00Z"
+      }
+    }
+  ]
+}
