@@ -13,6 +13,7 @@ import com.trigenys.cleanroute.data.local.dao.DashboardDao
 import com.trigenys.cleanroute.data.local.dao.OutboxDao
 import com.trigenys.cleanroute.data.local.dao.PaymentDao
 import com.trigenys.cleanroute.data.local.dao.RouteDayDao
+import com.trigenys.cleanroute.data.local.dao.RetentionDao
 import com.trigenys.cleanroute.data.local.entity.CollectionVisitEntity
 import com.trigenys.cleanroute.data.local.entity.CollectionVisitRevisionEntity
 import com.trigenys.cleanroute.data.local.entity.ContactActionEntity
@@ -21,6 +22,8 @@ import com.trigenys.cleanroute.data.local.entity.OutboxOperationEntity
 import com.trigenys.cleanroute.data.local.entity.PaymentEntity
 import com.trigenys.cleanroute.data.local.entity.RouteDayCustomerEntity
 import com.trigenys.cleanroute.data.local.entity.RouteDayEntity
+import com.trigenys.cleanroute.data.local.entity.ReferralEntity
+import com.trigenys.cleanroute.data.local.entity.ReferralProfileEntity
 import com.trigenys.cleanroute.data.local.entity.ServicePlanEntity
 import com.trigenys.cleanroute.data.local.entity.ZoneEntity
 
@@ -35,6 +38,8 @@ import com.trigenys.cleanroute.data.local.entity.ZoneEntity
         CollectionVisitRevisionEntity::class,
         PaymentEntity::class,
         ContactActionEntity::class,
+        ReferralProfileEntity::class,
+        ReferralEntity::class,
         OutboxOperationEntity::class
     ],
     version = CleanRouteDatabase.VERSION,
@@ -48,10 +53,11 @@ abstract class CleanRouteDatabase : RoomDatabase() {
     abstract fun contactActionDao(): ContactActionDao
     abstract fun routeDayDao(): RouteDayDao
     abstract fun paymentDao(): PaymentDao
+    abstract fun retentionDao(): RetentionDao
     abstract fun outboxDao(): OutboxDao
 
     companion object {
-        const val VERSION = 2
+        const val VERSION = 3
         const val DEFAULT_NAME = "cleanroute.db"
 
         fun open(
@@ -88,5 +94,60 @@ object CleanRouteMigrations {
         )
     }
 
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2)
+    val MIGRATION_2_3 = Migration(2, 3) { database ->
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS referral_profiles (
+                customerId TEXT NOT NULL,
+                code TEXT NOT NULL,
+                createdAtEpochMs INTEGER NOT NULL,
+                PRIMARY KEY(customerId)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS index_referral_profiles_code
+            ON referral_profiles(code)
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS referrals (
+                id TEXT NOT NULL,
+                referrerCustomerId TEXT NOT NULL,
+                referredCustomerId TEXT NOT NULL,
+                referralCode TEXT NOT NULL,
+                rewardStatus TEXT NOT NULL,
+                attributedAtEpochMs INTEGER NOT NULL,
+                qualifiedAtEpochMs INTEGER,
+                awardedAtEpochMs INTEGER,
+                PRIMARY KEY(id)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS index_referrals_referredCustomerId
+            ON referrals(referredCustomerId)
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS index_referrals_referrerCustomerId
+            ON referrals(referrerCustomerId)
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS index_referrals_rewardStatus
+            ON referrals(rewardStatus)
+            """.trimIndent()
+        )
+    }
+
+    val ALL: Array<Migration> = arrayOf(
+        MIGRATION_1_2,
+        MIGRATION_2_3
+    )
 }

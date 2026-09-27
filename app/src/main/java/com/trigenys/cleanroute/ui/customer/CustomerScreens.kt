@@ -57,6 +57,8 @@ import com.trigenys.cleanroute.domain.PaymentId
 import com.trigenys.cleanroute.domain.PaymentMethod
 import com.trigenys.cleanroute.domain.PaymentMethods
 import com.trigenys.cleanroute.domain.PaymentState
+import com.trigenys.cleanroute.domain.ReferralId
+import com.trigenys.cleanroute.domain.RetentionCustomerProfile
 import com.trigenys.cleanroute.domain.RouteDayId
 import com.trigenys.cleanroute.domain.ServicePlan
 import com.trigenys.cleanroute.domain.ServicePlanId
@@ -65,6 +67,7 @@ import com.trigenys.cleanroute.domain.ZoneId
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
+import com.trigenys.cleanroute.ui.retention.RetentionCard
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 import java.text.NumberFormat
 import java.time.Instant
@@ -222,7 +225,11 @@ fun CustomerDetailScreen(
     onReversePayment: (Payment) -> Unit = {},
     onCall: () -> Unit = {},
     onWhatsApp: () -> Unit = {},
-    contactFeedback: String? = null
+    contactFeedback: String? = null,
+    retentionProfile: RetentionCustomerProfile? = null,
+    retentionFeedback: String? = null,
+    onAttributeReferrer: () -> Unit = {},
+    onAwardReferral: (ReferralId) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -356,6 +363,17 @@ fun CustomerDetailScreen(
                         Text("Enregistrer un paiement")
                     }
                 }
+            }
+        }
+
+        retentionProfile?.let { retention ->
+            item {
+                RetentionCard(
+                    profile = retention,
+                    feedback = retentionFeedback,
+                    onAttributeReferrer = onAttributeReferrer,
+                    onAwardReferral = onAwardReferral
+                )
             }
         }
 

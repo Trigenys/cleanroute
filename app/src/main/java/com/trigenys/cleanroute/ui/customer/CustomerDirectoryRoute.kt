@@ -30,19 +30,24 @@ import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.domain.Payment
 import com.trigenys.cleanroute.domain.PaymentDraft
 import com.trigenys.cleanroute.domain.PaymentRepository
+import com.trigenys.cleanroute.domain.RetentionCustomerProfile
+import com.trigenys.cleanroute.domain.RetentionRepository
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.util.UUID
 import kotlinx.coroutines.launch
 import com.trigenys.cleanroute.ui.payment.PaymentEntryDialog
 import com.trigenys.cleanroute.ui.payment.PaymentReverseDialog
+import com.trigenys.cleanroute.ui.retention.ReferralAttributionDialog
 
 @Composable
 fun CustomerDirectoryRoute(
     repository: CustomerRepository,
     paymentRepository: PaymentRepository,
     contactService: CustomerContactService,
+    retentionRepository: RetentionRepository?,
     innerPadding: PaddingValues
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -59,6 +64,9 @@ fun CustomerDirectoryRoute(
     var paymentError by remember { mutableStateOf<String?>(null) }
     var paymentToReverse by remember { mutableStateOf<Payment?>(null) }
     var contactFeedback by remember { mutableStateOf<String?>(null) }
+    var retentionProfile by remember { mutableStateOf<RetentionCustomerProfile?>(null) }
+    var retentionFeedback by remember { mutableStateOf<String?>(null) }
+    var showReferralDialog by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -72,14 +80,30 @@ fun CustomerDirectoryRoute(
         val id = selectedCustomerId
         if (id == null) {
             profile = null
+            retentionProfile = null
+            retentionFeedback = null
             profileLoading = false
         } else {
             profileLoading = true
+            val customerId = CustomerId(id)
             profile = repository.getProfile(
-                id = CustomerId(id),
+                id = customerId,
                 servicePeriod = YearMonth.now(),
                 today = LocalDate.now()
             )
+            retentionProfile = retentionRepository?.let { retention ->
+                runCatching {
+                    retention.getProfile(
+                        customerId = customerId,
+                        today = LocalDate.now(),
+                        timeZone = ZoneId.systemDefault(),
+                        at = Instant.now()
+                    )
+                }.onFailure { error ->
+                    retentionFeedback = error.message
+                        ?: "Impossible de charger le parrainage."
+                }.getOrNull()
+            }
             profileLoading = false
         }
     }
@@ -171,7 +195,29 @@ fun CustomerDirectoryRoute(
                     }
                 }
             },
-            contactFeedback = contactFeedback
+            contactFeedback = contactFeedback,
+            retentionProfile = retentionProfile,
+            retentionFeedback = retentionFeedback,
+            onAttributeReferrer = {
+                retentionFeedback = null
+                showReferralDialog = true
+            },
+            onAwardReferral = { referralId ->
+                val retention = retentionRepository
+                if (retention != null) {
+                    scope.launch {
+                        runCatching {
+                            retention.award(referralId, Instant.now())
+                        }.onSuccess {
+                            retentionFeedback = null
+                            refreshVersion += 1
+                        }.onFailure { error ->
+                            retentionFeedback = error.message
+                                ?: "Impossible d’accorder la récompense."
+                        }
+                    }
+                }
+            }
         )
         selectedCustomerId != null -> CustomerLoadingScreen(innerPadding)
         else -> CustomerDirectoryScreen(
@@ -237,6 +283,38 @@ fun CustomerDirectoryRoute(
                         refreshVersion += 1
                     }.onFailure { error ->
                         paymentError = error.message ?: "Impossible d’annuler le paiement."
+                    }
+                }
+            }
+        )
+    }
+
+    if (showReferralDialog) {
+        ReferralAttributionDialog(
+            errorMessage = retentionFeedback,
+            onDismiss = {
+                showReferralDialog = false
+                retentionFeedback = null
+            },
+            onConfirm = { code ->
+                val retention = retentionRepository
+                val current = profile
+                if (retention != null && current != null) {
+                    scope.launch {
+                        runCatching {
+                            retention.attribute(
+                                referredCustomerId = current.customer.id,
+                                referralCode = code,
+                                at = Instant.now()
+                            )
+                        }.onSuccess {
+                            showReferralDialog = false
+                            retentionFeedback = null
+                            refreshVersion += 1
+                        }.onFailure { error ->
+                            retentionFeedback = error.message
+                                ?: "Impossible d’attribuer ce parrain."
+                        }
                     }
                 }
             }

@@ -20,7 +20,8 @@ enum class SyncOperationKind {
     UPSERT_CUSTOMER,
     UPSERT_COLLECTION_VISIT,
     UPSERT_PAYMENT,
-    RECORD_CONTACT_ACTION
+    RECORD_CONTACT_ACTION,
+    UPSERT_REFERRAL
 }
 
 data class SyncOperation(
