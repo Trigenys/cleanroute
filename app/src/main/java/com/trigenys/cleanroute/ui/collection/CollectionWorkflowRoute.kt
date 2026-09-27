@@ -1,7 +1,5 @@
 package com.trigenys.cleanroute.ui.collection
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,11 +11,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.trigenys.cleanroute.communication.ContactLaunchResult
+import com.trigenys.cleanroute.communication.CustomerContactService
+import com.trigenys.cleanroute.communication.CustomerMessageData
+import com.trigenys.cleanroute.communication.CustomerMessageKind
 import com.trigenys.cleanroute.domain.CollectionVisitId
 import com.trigenys.cleanroute.domain.CollectionVisitStatus
 import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.DailyCollectionRoute
-import com.trigenys.cleanroute.domain.ZoneId
 import com.trigenys.cleanroute.domain.ZoneWorkload
 import java.time.Instant
 import java.time.LocalDate
@@ -26,6 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CollectionWorkflowRoute(
     repository: CollectionWorkflowRepository,
+    contactService: CustomerContactService,
     innerPadding: PaddingValues
 ) {
     val context = LocalContext.current
@@ -126,31 +128,55 @@ fun CollectionWorkflowRoute(
                     loading = false
                 }
             },
-            onCall = { phone ->
-                runCatching {
-                    context.startActivity(
-                        Intent(
-                            Intent.ACTION_DIAL,
-                            Uri.parse("tel:${Uri.encode(phone)}")
-                        )
-                    )
-                }.onFailure {
-                    errorMessage = "Aucune application d’appel disponible."
+            onCall = { stop ->
+                val phone = stop.phone
+                if (phone != null) {
+                    scope.launch {
+                        errorMessage = contactService.call(
+                            context = context,
+                            customerId = stop.visit.customerId,
+                            rawPhone = phone,
+                            at = Instant.now()
+                        ).feedback()
+                    }
                 }
             },
-            onWhatsApp = { phone ->
-                val digits = phone.filter(Char::isDigit)
-                runCatching {
-                    context.startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://wa.me/$digits")
-                        )
-                    )
-                }.onFailure {
-                    errorMessage = "Impossible d’ouvrir WhatsApp."
+            onWhatsApp = { stop ->
+                val phone = stop.phone
+                if (phone != null) {
+                    scope.launch {
+                        val kind = when (stop.visit.status) {
+                            CollectionVisitStatus.SCHEDULED ->
+                                CustomerMessageKind.UPCOMING_COLLECTION
+                            CollectionVisitStatus.COLLECTED ->
+                                CustomerMessageKind.COLLECTION_COMPLETED
+                            CollectionVisitStatus.ABSENT,
+                            CollectionVisitStatus.NO_WASTE -> null
+                        }
+                        val data = kind?.let {
+                            CustomerMessageData(
+                                customerName = stop.customerName,
+                                collectionDate = stop.visit.scheduledDate
+                            )
+                        }
+                        errorMessage = contactService.whatsApp(
+                            context = context,
+                            customerId = stop.visit.customerId,
+                            rawPhone = phone,
+                            kind = kind,
+                            data = data,
+                            at = Instant.now()
+                        ).feedback()
+                    }
                 }
             }
         )
     }
 }
+
+private fun ContactLaunchResult.feedback(): String? =
+    when (this) {
+        ContactLaunchResult.Launched -> null
+        is ContactLaunchResult.Unavailable -> message
+        is ContactLaunchResult.Failed -> message
+    }

@@ -219,7 +219,10 @@ fun CustomerDetailScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onRecordPayment: () -> Unit = {},
-    onReversePayment: (Payment) -> Unit = {}
+    onReversePayment: (Payment) -> Unit = {},
+    onCall: () -> Unit = {},
+    onWhatsApp: () -> Unit = {},
+    contactFeedback: String? = null
 ) {
     LazyColumn(
         modifier = Modifier
@@ -284,14 +287,18 @@ fun CustomerDetailScreen(
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PlaceholderAction(
+                    ContactActionButton(
                         label = "Appeler",
                         icon = Icons.Outlined.Phone,
+                        enabled = profile.customer.phone != null,
+                        onClick = onCall,
                         modifier = Modifier.weight(1f)
                     )
-                    PlaceholderAction(
+                    ContactActionButton(
                         label = "WhatsApp",
                         icon = Icons.Outlined.ChatBubbleOutline,
+                        enabled = profile.customer.phone != null,
+                        onClick = onWhatsApp,
                         modifier = Modifier.weight(1f)
                     )
                     PlaceholderAction(
@@ -300,8 +307,17 @@ fun CustomerDetailScreen(
                         modifier = Modifier.weight(1f)
                     )
                 }
+
+                contactFeedback?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 Text(
-                    "Ces actions seront activées dans l’étape communications.",
+                    "WhatsApp prépare le message : rien n’est envoyé sans votre action.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -373,6 +389,25 @@ fun CustomerDetailScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ContactActionButton(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+    ) {
+        Icon(icon, contentDescription = null)
+        Spacer(Modifier.width(4.dp))
+        Text(label)
     }
 }
 

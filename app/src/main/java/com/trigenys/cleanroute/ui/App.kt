@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.trigenys.cleanroute.communication.CustomerContactService
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.CustomerRepository
@@ -46,6 +47,7 @@ import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 fun App(
     customerRepository: CustomerRepository? = null,
     collectionWorkflowRepository: CollectionWorkflowRepository? = null,
+    contactService: CustomerContactService? = null,
     dashboardRepository: DashboardRepository? = null,
     paymentRepository: PaymentRepository? = null,
     spreadsheetService: CustomerSpreadsheetService? = null
@@ -59,6 +61,7 @@ fun App(
         onDestinationSelected = { selectedDestination = it },
         customerRepository = customerRepository,
         collectionWorkflowRepository = collectionWorkflowRepository,
+        contactService = contactService,
         dashboardRepository = dashboardRepository,
         paymentRepository = paymentRepository,
         spreadsheetService = spreadsheetService
@@ -71,6 +74,7 @@ private fun CleanRouteShell(
     onDestinationSelected: (AppDestination) -> Unit,
     customerRepository: CustomerRepository?,
     collectionWorkflowRepository: CollectionWorkflowRepository?,
+    contactService: CustomerContactService?,
     dashboardRepository: DashboardRepository?,
     paymentRepository: PaymentRepository?,
     spreadsheetService: CustomerSpreadsheetService?
@@ -104,7 +108,7 @@ private fun CleanRouteShell(
             }
 
             AppDestination.COLLECTION -> {
-                if (collectionWorkflowRepository == null) {
+                if (collectionWorkflowRepository == null || contactService == null) {
                     ZoneWorkloadScreen(
                         workloads = emptyList(),
                         loading = false,
@@ -115,13 +119,18 @@ private fun CleanRouteShell(
                 } else {
                     CollectionWorkflowRoute(
                         repository = collectionWorkflowRepository,
+                        contactService = contactService,
                         innerPadding = innerPadding
                     )
                 }
             }
 
             AppDestination.CLIENTS -> {
-                if (customerRepository == null || paymentRepository == null) {
+                if (
+                    customerRepository == null ||
+                    paymentRepository == null ||
+                    contactService == null
+                ) {
                     CustomerDirectoryScreen(
                         entries = emptyList(),
                         query = "",
@@ -135,6 +144,7 @@ private fun CleanRouteShell(
                     CustomerDirectoryRoute(
                         repository = customerRepository,
                         paymentRepository = paymentRepository,
+                        contactService = contactService,
                         innerPadding = innerPadding
                     )
                 }
@@ -143,6 +153,7 @@ private fun CleanRouteShell(
             AppDestination.MORE -> {
                 MoreRoute(
                     paymentRepository = paymentRepository,
+                    contactService = contactService,
                     spreadsheetService = spreadsheetService,
                     innerPadding = innerPadding
                 )

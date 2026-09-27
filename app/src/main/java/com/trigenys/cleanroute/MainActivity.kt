@@ -4,8 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.trigenys.cleanroute.communication.ContactIntentFactory
+import com.trigenys.cleanroute.communication.CustomerContactService
+import com.trigenys.cleanroute.communication.FrenchCustomerMessageTemplates
+import com.trigenys.cleanroute.communication.PhoneNumberNormalizer
 import com.trigenys.cleanroute.data.local.CleanRouteDatabase
 import com.trigenys.cleanroute.data.repository.RoomCollectionWorkflowRepository
+import com.trigenys.cleanroute.data.repository.RoomContactActionRepository
 import com.trigenys.cleanroute.data.repository.RoomCustomerRepository
 import com.trigenys.cleanroute.data.repository.RoomDashboardRepository
 import com.trigenys.cleanroute.data.repository.RoomPaymentRepository
@@ -21,6 +26,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         database = CleanRouteDatabase.open(applicationContext)
+        val contactService = CustomerContactService(
+            repository = RoomContactActionRepository(database),
+            intentFactory = ContactIntentFactory(
+                PhoneNumberNormalizer(defaultCountryCallingCode = "237")
+            ),
+            templates = FrenchCustomerMessageTemplates()
+        )
         val customerRepository = RoomCustomerRepository(database)
         val collectionWorkflowRepository = RoomCollectionWorkflowRepository(database)
         val dashboardRepository = RoomDashboardRepository(database)
@@ -32,6 +44,7 @@ class MainActivity : ComponentActivity() {
                 App(
                     customerRepository = customerRepository,
                     collectionWorkflowRepository = collectionWorkflowRepository,
+                    contactService = contactService,
                     dashboardRepository = dashboardRepository,
                     paymentRepository = paymentRepository,
                     spreadsheetService = spreadsheetService

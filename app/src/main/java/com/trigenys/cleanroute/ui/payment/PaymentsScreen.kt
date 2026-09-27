@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -18,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,7 +46,8 @@ fun PaymentsScreen(
     onQueryChange: (String) -> Unit,
     onPreviousPeriod: () -> Unit,
     onNextPeriod: () -> Unit,
-    onRecordPayment: (ArrearsEntry) -> Unit
+    onRecordPayment: (ArrearsEntry) -> Unit,
+    onRemindPayment: (ArrearsEntry) -> Unit = {}
 ) {
     val totalOutstanding = entries.sumOf { it.outstandingXaf }
 
@@ -173,7 +176,8 @@ fun PaymentsScreen(
             ) { entry ->
                 ArrearsCard(
                     entry = entry,
-                    onRecordPayment = { onRecordPayment(entry) }
+                    onRecordPayment = { onRecordPayment(entry) },
+                    onRemindPayment = { onRemindPayment(entry) }
                 )
             }
         }
@@ -183,7 +187,8 @@ fun PaymentsScreen(
 @Composable
 private fun ArrearsCard(
     entry: ArrearsEntry,
-    onRecordPayment: () -> Unit
+    onRecordPayment: () -> Unit,
+    onRemindPayment: () -> Unit
 ) {
     CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -227,6 +232,15 @@ private fun ArrearsCard(
         ) {
             Text("Encaisser")
         }
+
+        OutlinedButton(
+            onClick = onRemindPayment,
+            enabled = entry.phone != null,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null)
+            Text(" Relancer sur WhatsApp")
+        }
     }
 }
 
@@ -265,7 +279,8 @@ private fun PaymentsUnpaidPreview() {
             onQueryChange = {},
             onPreviousPeriod = {},
             onNextPeriod = {},
-            onRecordPayment = {}
+            onRecordPayment = {},
+            onRemindPayment = {}
         )
     }
 }
@@ -284,7 +299,8 @@ private fun PaymentsPaidPreview() {
             onQueryChange = {},
             onPreviousPeriod = {},
             onNextPeriod = {},
-            onRecordPayment = {}
+            onRecordPayment = {},
+            onRemindPayment = {}
         )
     }
 }

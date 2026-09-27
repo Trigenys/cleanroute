@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.trigenys.cleanroute.communication.CustomerContactService
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.PaymentRepository
 import com.trigenys.cleanroute.ui.payment.PaymentsRoute
@@ -33,6 +34,7 @@ private enum class MoreSection {
 @Composable
 fun MoreRoute(
     paymentRepository: PaymentRepository?,
+    contactService: CustomerContactService?,
     spreadsheetService: CustomerSpreadsheetService?,
     innerPadding: PaddingValues
 ) {
@@ -67,7 +69,7 @@ fun MoreRoute(
         Box(modifier = Modifier.weight(1f)) {
             when (section) {
                 MoreSection.PAYMENTS -> {
-                    if (paymentRepository == null) {
+                    if (paymentRepository == null || contactService == null) {
                         PaymentsScreen(
                             entries = emptyList(),
                             period = YearMonth.now(),
@@ -78,11 +80,13 @@ fun MoreRoute(
                             onQueryChange = {},
                             onPreviousPeriod = {},
                             onNextPeriod = {},
-                            onRecordPayment = {}
+                            onRecordPayment = {},
+                            onRemindPayment = {}
                         )
                     } else {
                         PaymentsRoute(
                             repository = paymentRepository,
+                            contactService = contactService,
                             innerPadding = PaddingValues()
                         )
                     }

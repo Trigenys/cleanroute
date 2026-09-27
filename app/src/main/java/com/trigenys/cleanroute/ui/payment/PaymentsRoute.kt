@@ -10,6 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.trigenys.cleanroute.communication.ContactLaunchResult
+import com.trigenys.cleanroute.communication.CustomerContactService
+import com.trigenys.cleanroute.communication.CustomerMessageData
+import com.trigenys.cleanroute.communication.CustomerMessageKind
 import com.trigenys.cleanroute.domain.ArrearsEntry
 import com.trigenys.cleanroute.domain.PaymentDraft
 import com.trigenys.cleanroute.domain.PaymentRepository
@@ -21,6 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PaymentsRoute(
     repository: PaymentRepository,
+    contactService: CustomerContactService,
     innerPadding: PaddingValues
 ) {
     var periodText by rememberSaveable { mutableStateOf(YearMonth.now().toString()) }
@@ -32,6 +38,7 @@ fun PaymentsRoute(
     var paymentTarget by remember { mutableStateOf<ArrearsEntry?>(null) }
     var submissionId by remember { mutableStateOf<String?>(null) }
     var refreshVersion by remember { mutableIntStateOf(0) }
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(period, query, refreshVersion) {
@@ -61,6 +68,25 @@ fun PaymentsRoute(
             paymentTarget = entry
             submissionId = UUID.randomUUID().toString()
             errorMessage = null
+        },
+        onRemindPayment = { entry ->
+            val phone = entry.phone
+            if (phone != null) {
+                scope.launch {
+                    errorMessage = contactService.whatsApp(
+                        context = context,
+                        customerId = entry.customerId,
+                        rawPhone = phone,
+                        kind = CustomerMessageKind.PAYMENT_REMINDER,
+                        data = CustomerMessageData(
+                            customerName = entry.customerName,
+                            outstandingXaf = entry.outstandingXaf,
+                            servicePeriod = period
+                        ),
+                        at = Instant.now()
+                    ).feedback()
+                }
+            }
         }
     )
 
@@ -99,3 +125,11 @@ fun PaymentsRoute(
         )
     }
 }
+
+
+private fun ContactLaunchResult.feedback(): String? =
+    when (this) {
+        ContactLaunchResult.Launched -> null
+        is ContactLaunchResult.Unavailable -> message
+        is ContactLaunchResult.Failed -> message
+    }

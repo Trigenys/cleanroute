@@ -2,6 +2,7 @@ package com.trigenys.cleanroute.data.local
 
 import com.trigenys.cleanroute.data.local.entity.OutboxOperationEntity
 import com.trigenys.cleanroute.domain.CollectionVisit
+import com.trigenys.cleanroute.domain.ContactAction
 import com.trigenys.cleanroute.domain.Customer
 import com.trigenys.cleanroute.domain.Payment
 import com.trigenys.cleanroute.domain.SyncOperationKind
@@ -31,6 +32,18 @@ internal object OutboxOperationFactory {
             aggregateId = visit.id.value,
             occurredAtEpochMs = visit.statusChangedAt?.toEpochMilli()
                 ?: visit.scheduledDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+
+    fun contactAction(action: ContactAction): OutboxOperationEntity =
+        OutboxOperationEntity(
+            id = stableId(
+                kind = SyncOperationKind.RECORD_CONTACT_ACTION,
+                aggregateId = action.id.value,
+                revision = action.createdAt.toEpochMilli().toString()
+            ),
+            kind = SyncOperationKind.RECORD_CONTACT_ACTION.name,
+            aggregateId = action.id.value,
+            occurredAtEpochMs = action.createdAt.toEpochMilli()
         )
 
     fun payment(payment: Payment): OutboxOperationEntity {
