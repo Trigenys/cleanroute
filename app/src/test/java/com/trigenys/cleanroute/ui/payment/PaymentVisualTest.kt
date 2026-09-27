@@ -19,6 +19,27 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w390dp-h844dp")
 class PaymentVisualTest {
     @Test
+    fun ledgerError() {
+        captureRoboImage {
+            CleanRouteTheme {
+                PaymentsScreen(
+                    entries = emptyList(),
+                    period = YearMonth.of(2026, 9),
+                    query = "",
+                    loading = false,
+                    errorMessage = "Impossible de charger les impayés.",
+                    innerPadding = PaddingValues(),
+                    onQueryChange = {},
+                    onPreviousPeriod = {},
+                    onNextPeriod = {},
+                    onRecordPayment = {},
+                    onRemindPayment = {}
+                )
+            }
+        }
+    }
+
+    @Test
     fun unpaidLedger() {
         captureRoboImage {
             CleanRouteTheme {

@@ -14,6 +14,21 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w390dp-h844dp")
 class CollectionVisualTest {
     @Test
+    fun zoneLoadError() {
+        captureRoboImage {
+            CleanRouteTheme {
+                ZoneWorkloadScreen(
+                    workloads = emptyList(),
+                    loading = false,
+                    errorMessage = "Impossible de charger les zones.",
+                    innerPadding = PaddingValues(),
+                    onZoneSelected = {}
+                )
+            }
+        }
+    }
+
+    @Test
     fun routeWithExpandedStopActions() {
         captureRoboImage {
             CleanRouteTheme {

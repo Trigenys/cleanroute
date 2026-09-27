@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+env:
+  TZ: UTC
+
 jobs:
   screenshots:
     runs-on: ubuntu-latest
@@ -25,7 +28,7 @@ jobs:
         id: baseline
         shell: bash
         run: |
-          if find app/src/test/screenshots -type f -name '*.png' -print -quit | grep -q .; then
+          if find app/src/test/screenshots -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -45,3 +48,14 @@ jobs:
         with:
           name: roborazzi-bootstrap-goldens
           path: app/src/test/screenshots/
+          if-no-files-found: error
+
+      - name: Upload failed visual diff
+        if: failure() && steps.baseline.outputs.exists == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: roborazzi-visual-diff
+          if-no-files-found: warn
+          path: |
+            app/build/outputs/roborazzi/
+            app/src/test/screenshots/
