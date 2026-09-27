@@ -1,1 +1,0 @@
-pilot_session_id,date_utc,operator_alias,build_sha,task,attempt_number,completed_without_guidance,duration_seconds,corrections,failed_imports,duplicate_attempts,support_interventions,offline_mode,restart_recovery,observation
