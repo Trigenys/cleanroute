@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.trigenys.cleanroute.data.local.CleanRouteDatabase
+import com.trigenys.cleanroute.data.repository.RoomCollectionWorkflowRepository
 import com.trigenys.cleanroute.data.repository.RoomCustomerRepository
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.ui.App
@@ -19,12 +20,14 @@ class MainActivity : ComponentActivity() {
 
         database = CleanRouteDatabase.open(applicationContext)
         val customerRepository = RoomCustomerRepository(database)
+        val collectionWorkflowRepository = RoomCollectionWorkflowRepository(database)
         val spreadsheetService = CustomerSpreadsheetService(database)
 
         setContent {
             CleanRouteTheme {
                 App(
                     customerRepository = customerRepository,
+                    collectionWorkflowRepository = collectionWorkflowRepository,
                     spreadsheetService = spreadsheetService
                 )
             }
