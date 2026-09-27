@@ -14,6 +14,35 @@ abstract class CollectionVisitDao {
     @Query("SELECT * FROM collection_visits WHERE id = :id LIMIT 1")
     abstract suspend fun get(id: String): CollectionVisitEntity?
 
+    @Query(
+        """
+        SELECT * FROM collection_visits
+        WHERE customerId = :customerId
+          AND status = 'SCHEDULED'
+          AND scheduledDateIso >= :todayIso
+        ORDER BY scheduledDateIso ASC
+        LIMIT 1
+        """
+    )
+    abstract suspend fun getNextScheduled(
+        customerId: String,
+        todayIso: String
+    ): CollectionVisitEntity?
+
+    @Query(
+        """
+        SELECT * FROM collection_visits
+        WHERE customerId = :customerId
+          AND status != 'SCHEDULED'
+        ORDER BY COALESCE(statusChangedAtEpochMs, 0) DESC, scheduledDateIso DESC
+        LIMIT :limit
+        """
+    )
+    abstract suspend fun getRecentCompleted(
+        customerId: String,
+        limit: Int
+    ): List<CollectionVisitEntity>
+
     @Upsert
     protected abstract suspend fun upsertEntity(visit: CollectionVisitEntity)
 

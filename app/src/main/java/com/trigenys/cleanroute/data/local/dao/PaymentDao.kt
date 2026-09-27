@@ -14,6 +14,32 @@ abstract class PaymentDao {
     @Query("SELECT * FROM payments WHERE id = :id LIMIT 1")
     abstract suspend fun get(id: String): PaymentEntity?
 
+    @Query(
+        """
+        SELECT * FROM payments
+        WHERE customerId = :customerId
+          AND servicePeriod = :servicePeriod
+        ORDER BY recordedAtEpochMs DESC
+        """
+    )
+    abstract suspend fun getForPeriod(
+        customerId: String,
+        servicePeriod: String
+    ): List<PaymentEntity>
+
+    @Query(
+        """
+        SELECT * FROM payments
+        WHERE customerId = :customerId
+        ORDER BY recordedAtEpochMs DESC
+        LIMIT :limit
+        """
+    )
+    abstract suspend fun getRecent(
+        customerId: String,
+        limit: Int
+    ): List<PaymentEntity>
+
     @Upsert
     protected abstract suspend fun upsertEntity(payment: PaymentEntity)
 

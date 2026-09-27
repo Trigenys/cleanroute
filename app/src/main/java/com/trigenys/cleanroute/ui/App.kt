@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Icon
@@ -25,36 +24,39 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.trigenys.cleanroute.R
+import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
 import com.trigenys.cleanroute.ui.components.CleanRoutePrimaryButton
 import com.trigenys.cleanroute.ui.components.CleanRouteSecondaryButton
 import com.trigenys.cleanroute.ui.components.KpiTile
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
+import com.trigenys.cleanroute.ui.customer.CustomerDirectoryRoute
+import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 
 @Composable
-fun App() {
+fun App(customerRepository: CustomerRepository? = null) {
     var selectedDestination by rememberSaveable {
         mutableStateOf(AppDestination.HOME)
     }
 
     CleanRouteShell(
         selectedDestination = selectedDestination,
-        onDestinationSelected = { selectedDestination = it }
+        onDestinationSelected = { selectedDestination = it },
+        customerRepository = customerRepository
     )
 }
 
 @Composable
 private fun CleanRouteShell(
     selectedDestination: AppDestination,
-    onDestinationSelected: (AppDestination) -> Unit
+    onDestinationSelected: (AppDestination) -> Unit,
+    customerRepository: CustomerRepository?
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -66,23 +68,38 @@ private fun CleanRouteShell(
         }
     ) { innerPadding ->
         when (selectedDestination) {
-            AppDestination.HOME -> FoundationHome(innerPadding)
+            AppDestination.HOME -> FoundationHome(
+                innerPadding = innerPadding,
+                onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) }
+            )
             AppDestination.COLLECTION -> ModulePlaceholder(
                 innerPadding = innerPadding,
-                title = stringResource(R.string.nav_collection),
-                description = stringResource(R.string.collection_placeholder),
+                title = "Collecte",
+                description = "Les tournées du jour apparaîtront ici dès que le module terrain sera branché.",
                 icon = Icons.Outlined.Route
             )
-            AppDestination.CLIENTS -> ModulePlaceholder(
-                innerPadding = innerPadding,
-                title = stringResource(R.string.nav_clients),
-                description = stringResource(R.string.clients_placeholder),
-                icon = Icons.Outlined.Group
-            )
+            AppDestination.CLIENTS -> {
+                if (customerRepository == null) {
+                    CustomerDirectoryScreen(
+                        entries = emptyList(),
+                        query = "",
+                        loading = false,
+                        innerPadding = innerPadding,
+                        onQueryChange = {},
+                        onAddCustomer = {},
+                        onCustomerSelected = {}
+                    )
+                } else {
+                    CustomerDirectoryRoute(
+                        repository = customerRepository,
+                        innerPadding = innerPadding
+                    )
+                }
+            }
             AppDestination.MORE -> ModulePlaceholder(
                 innerPadding = innerPadding,
-                title = stringResource(R.string.nav_more),
-                description = stringResource(R.string.more_placeholder),
+                title = "Plus",
+                description = "Paiements, import Excel, paramètres et autres outils seront regroupés ici.",
                 icon = Icons.Outlined.MoreHoriz
             )
         }
@@ -90,7 +107,10 @@ private fun CleanRouteShell(
 }
 
 @Composable
-private fun FoundationHome(innerPadding: PaddingValues) {
+private fun FoundationHome(
+    innerPadding: PaddingValues,
+    onOpenClients: () -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -106,11 +126,11 @@ private fun FoundationHome(innerPadding: PaddingValues) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = stringResource(R.string.home_greeting),
+                    text = "Bonjour 👋",
                     style = MaterialTheme.typography.headlineLarge
                 )
                 Text(
-                    text = stringResource(R.string.home_subtitle),
+                    text = "Votre activité en un coup d’œil",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -125,17 +145,17 @@ private fun FoundationHome(innerPadding: PaddingValues) {
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = stringResource(R.string.today),
+                            text = "Aujourd’hui",
                             style = MaterialTheme.typography.titleLarge
                         )
                         Text(
-                            text = stringResource(R.string.no_route_loaded),
+                            text = "Aucune tournée chargée",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     StatusChip(
-                        text = stringResource(R.string.offline_ready),
+                        text = "Prêt hors connexion",
                         tone = StatusTone.SUCCESS
                     )
                 }
@@ -146,7 +166,7 @@ private fun FoundationHome(innerPadding: PaddingValues) {
                 )
 
                 CleanRoutePrimaryButton(
-                    text = stringResource(R.string.start_route),
+                    text = "Commencer une tournée",
                     onClick = {},
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -155,7 +175,7 @@ private fun FoundationHome(innerPadding: PaddingValues) {
 
         item {
             Text(
-                text = stringResource(R.string.overview),
+                text = "Vue d’ensemble",
                 style = MaterialTheme.typography.titleMedium
             )
         }
@@ -166,12 +186,12 @@ private fun FoundationHome(innerPadding: PaddingValues) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 KpiTile(
-                    label = stringResource(R.string.active_clients),
+                    label = "Clients actifs",
                     value = "—",
                     modifier = Modifier.weight(1f)
                 )
                 KpiTile(
-                    label = stringResource(R.string.unpaid),
+                    label = "Impayés",
                     value = "—",
                     modifier = Modifier.weight(1f)
                 )
@@ -180,8 +200,8 @@ private fun FoundationHome(innerPadding: PaddingValues) {
 
         item {
             CleanRouteSecondaryButton(
-                text = stringResource(R.string.add_client),
-                onClick = {},
+                text = "Ajouter un client",
+                onClick = onOpenClients,
                 modifier = Modifier.fillMaxWidth()
             )
         }
