@@ -1,6 +1,8 @@
 package com.trigenys.cleanroute.domain
 
 import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
 
 enum class ContactChannel {
     CALL,
@@ -34,6 +36,16 @@ data class SyncOperation(
 
 interface CustomerRepository {
     suspend fun get(id: CustomerId): Customer?
+    suspend fun search(query: String): List<CustomerDirectoryEntry>
+    suspend fun getProfile(
+        id: CustomerId,
+        servicePeriod: YearMonth,
+        today: LocalDate
+    ): CustomerProfile?
+    suspend fun saveDraft(
+        draft: CustomerDraft,
+        now: Instant
+    ): CustomerId
     suspend fun upsert(customer: Customer)
 }
 

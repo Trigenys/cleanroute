@@ -3,6 +3,9 @@ package com.trigenys.cleanroute.data.local
 import com.trigenys.cleanroute.data.local.entity.CollectionVisitEntity
 import com.trigenys.cleanroute.data.local.entity.CustomerEntity
 import com.trigenys.cleanroute.data.local.entity.PaymentEntity
+import com.trigenys.cleanroute.data.local.entity.ServicePlanEntity
+import com.trigenys.cleanroute.data.local.entity.ZoneEntity
+import com.trigenys.cleanroute.domain.CollectionCadence
 import com.trigenys.cleanroute.domain.CollectionVisit
 import com.trigenys.cleanroute.domain.CollectionVisitId
 import com.trigenys.cleanroute.domain.CollectionVisitStatus
@@ -14,7 +17,9 @@ import com.trigenys.cleanroute.domain.PaymentId
 import com.trigenys.cleanroute.domain.PaymentMethod
 import com.trigenys.cleanroute.domain.PaymentState
 import com.trigenys.cleanroute.domain.RouteDayId
+import com.trigenys.cleanroute.domain.ServicePlan
 import com.trigenys.cleanroute.domain.ServicePlanId
+import com.trigenys.cleanroute.domain.Zone
 import com.trigenys.cleanroute.domain.ZoneId
 import java.time.Instant
 import java.time.LocalDate
@@ -44,6 +49,18 @@ internal fun CustomerEntity.toDomain() = Customer(
     status = CustomerStatus.valueOf(status),
     createdAt = Instant.ofEpochMilli(createdAtEpochMs),
     updatedAt = Instant.ofEpochMilli(updatedAtEpochMs)
+)
+
+internal fun ZoneEntity.toDomain() = Zone(
+    id = ZoneId(id),
+    name = name
+)
+
+internal fun ServicePlanEntity.toDomain() = ServicePlan(
+    id = ServicePlanId(id),
+    label = label,
+    cadence = CollectionCadence.valueOf(cadence),
+    monthlyFeeXaf = monthlyFeeXaf
 )
 
 internal fun CollectionVisit.toEntity() = CollectionVisitEntity(
