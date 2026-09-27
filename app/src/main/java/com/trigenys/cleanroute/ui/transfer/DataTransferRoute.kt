@@ -49,8 +49,9 @@ fun DataTransferRoute(
                 }
             }.onSuccess {
                 message = "Export Excel terminé."
-            }.onFailure { error ->
-                errorMessage = error.message ?: "Échec de l’export."
+            }.onFailure {
+                errorMessage =
+                    "Export impossible. Vérifiez l’espace disponible ou choisissez un autre emplacement, puis réessayez."
             }
             busy = false
         }
@@ -93,8 +94,9 @@ fun DataTransferRoute(
                 }
             }.onSuccess { preview ->
                 plan = preview
-            }.onFailure { error ->
-                errorMessage = error.message ?: "Impossible d’analyser le fichier."
+            }.onFailure {
+                errorMessage =
+                    "Import impossible. Vérifiez le fichier et l’espace disponible, puis réessayez."
             }
             busy = false
         }
@@ -141,8 +143,9 @@ fun DataTransferRoute(
                         append(".")
                     }
                     plan = null
-                }.onFailure { error ->
-                    errorMessage = error.message ?: "Échec de l’import."
+                }.onFailure {
+                    errorMessage =
+                        "Import interrompu. Vérifiez l’espace disponible puis relancez l’import : les lignes déjà enregistrées ne seront pas dupliquées."
                 }
                     busy = false
                 }

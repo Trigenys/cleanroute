@@ -60,3 +60,16 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 **Fix:** manage the database lifetime explicitly with `try/finally` and call `database.close()` in the `finally` block.
 
 **Prevention rule:** do not assume that an API exposing `close()` implements Kotlin/JVM `Closeable`. For Room database lifecycle tests, use explicit `try/finally` unless the concrete API contract is verified to implement a compatible closeable interface.
+
+## 2026-09-27 — In-memory Room tests did not prove restart durability
+
+**What happened:** the existing repository tests proved collection/payment idempotency, but almost all of them used an in-memory Room database.
+
+**Root cause:** in-memory databases are convenient and fast, but closing them destroys the state. A passing test therefore could not prove that a committed visit, payment or outbox operation survives process death or a device restart.
+
+**Why existing controls did not catch it:** domain and repository assertions exercised the right business rules but never crossed a real persistence reopen boundary.
+
+**Fix:** add file-backed Room resilience tests that write real customer/collection/payment/outbox data, close the database, reopen it from disk and then replay the same operations. Add a migration-preservation test for existing pilot records.
+
+**Prevention rule:** every offline-first critical write path must have at least one file-backed close/reopen test. In-memory Room tests remain useful for business rules but are not accepted as evidence of restart durability.
+
