@@ -34,6 +34,10 @@ data class ContactActionId(val value: String) {
     init { requireIdentifier(value, "ContactActionId") }
 }
 
+data class ReferralId(val value: String) {
+    init { requireIdentifier(value, "ReferralId") }
+}
+
 data class SyncOperationId(val value: String) {
     init { requireIdentifier(value, "SyncOperationId") }
 }

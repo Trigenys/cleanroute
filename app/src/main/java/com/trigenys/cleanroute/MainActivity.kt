@@ -14,7 +14,10 @@ import com.trigenys.cleanroute.data.repository.RoomContactActionRepository
 import com.trigenys.cleanroute.data.repository.RoomCustomerRepository
 import com.trigenys.cleanroute.data.repository.RoomDashboardRepository
 import com.trigenys.cleanroute.data.repository.RoomPaymentRepository
+import com.trigenys.cleanroute.data.repository.RoomRetentionRepository
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
+import com.trigenys.cleanroute.domain.ReferralRewardRule
+import com.trigenys.cleanroute.domain.RetentionProgramConfig
 import com.trigenys.cleanroute.ui.App
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 
@@ -37,6 +40,20 @@ class MainActivity : ComponentActivity() {
         val collectionWorkflowRepository = RoomCollectionWorkflowRepository(database)
         val dashboardRepository = RoomDashboardRepository(database)
         val paymentRepository = RoomPaymentRepository(database)
+        val retentionConfig = RetentionProgramConfig(
+            enabled = true,
+            codePrefix = "CR",
+            referralBaseUrl = null,
+            rewardRule = ReferralRewardRule(
+                minCompletedCollections = 1,
+                rewardLabel = "Avantage parrainage"
+            )
+        )
+        val retentionRepository = if (retentionConfig.enabled) {
+            RoomRetentionRepository(database, retentionConfig)
+        } else {
+            null
+        }
         val spreadsheetService = CustomerSpreadsheetService(database)
 
         setContent {
@@ -47,6 +64,7 @@ class MainActivity : ComponentActivity() {
                     contactService = contactService,
                     dashboardRepository = dashboardRepository,
                     paymentRepository = paymentRepository,
+                    retentionRepository = retentionRepository,
                     spreadsheetService = spreadsheetService
                 )
             }

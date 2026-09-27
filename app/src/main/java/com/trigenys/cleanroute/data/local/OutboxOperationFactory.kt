@@ -5,6 +5,7 @@ import com.trigenys.cleanroute.domain.CollectionVisit
 import com.trigenys.cleanroute.domain.ContactAction
 import com.trigenys.cleanroute.domain.Customer
 import com.trigenys.cleanroute.domain.Payment
+import com.trigenys.cleanroute.domain.Referral
 import com.trigenys.cleanroute.domain.SyncOperationKind
 import java.time.ZoneOffset
 
@@ -45,6 +46,22 @@ internal object OutboxOperationFactory {
             aggregateId = action.id.value,
             occurredAtEpochMs = action.createdAt.toEpochMilli()
         )
+
+    fun referral(referral: Referral): OutboxOperationEntity {
+        val revisionTimestamp = referral.awardedAt
+            ?: referral.qualifiedAt
+            ?: referral.attributedAt
+        return OutboxOperationEntity(
+            id = stableId(
+                kind = SyncOperationKind.UPSERT_REFERRAL,
+                aggregateId = referral.id.value,
+                revision = "${referral.rewardStatus.name}:${revisionTimestamp.toEpochMilli()}"
+            ),
+            kind = SyncOperationKind.UPSERT_REFERRAL.name,
+            aggregateId = referral.id.value,
+            occurredAtEpochMs = revisionTimestamp.toEpochMilli()
+        )
+    }
 
     fun payment(payment: Payment): OutboxOperationEntity {
         val revisionTimestamp = payment.reversedAt ?: payment.recordedAt

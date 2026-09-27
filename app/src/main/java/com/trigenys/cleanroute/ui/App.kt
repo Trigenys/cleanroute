@@ -27,6 +27,7 @@ import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.domain.DashboardRepository
 import com.trigenys.cleanroute.domain.PaymentRepository
+import com.trigenys.cleanroute.domain.RetentionRepository
 import com.trigenys.cleanroute.ui.collection.CollectionWorkflowRoute
 import com.trigenys.cleanroute.ui.collection.ZoneWorkloadScreen
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
@@ -50,6 +51,7 @@ fun App(
     contactService: CustomerContactService? = null,
     dashboardRepository: DashboardRepository? = null,
     paymentRepository: PaymentRepository? = null,
+    retentionRepository: RetentionRepository? = null,
     spreadsheetService: CustomerSpreadsheetService? = null
 ) {
     var selectedDestination by rememberSaveable {
@@ -64,6 +66,7 @@ fun App(
         contactService = contactService,
         dashboardRepository = dashboardRepository,
         paymentRepository = paymentRepository,
+        retentionRepository = retentionRepository,
         spreadsheetService = spreadsheetService
     )
 }
@@ -77,6 +80,7 @@ private fun CleanRouteShell(
     contactService: CustomerContactService?,
     dashboardRepository: DashboardRepository?,
     paymentRepository: PaymentRepository?,
+    retentionRepository: RetentionRepository?,
     spreadsheetService: CustomerSpreadsheetService?
 ) {
     Scaffold(
@@ -145,6 +149,7 @@ private fun CleanRouteShell(
                         repository = customerRepository,
                         paymentRepository = paymentRepository,
                         contactService = contactService,
+                        retentionRepository = retentionRepository,
                         innerPadding = innerPadding
                     )
                 }
