@@ -4,7 +4,7 @@ import com.graphhopper.jsprit.core.algorithm.box.Jsprit
 import com.graphhopper.jsprit.core.problem.Location
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem
 import com.graphhopper.jsprit.core.problem.job.Service
-import com.graphhopper.jsprit.core.problem.solution.Solutions
+import com.graphhopper.jsprit.core.util.Solutions
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl
