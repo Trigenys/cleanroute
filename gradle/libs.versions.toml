@@ -11,6 +11,8 @@ androidxTest = "1.3.0"
 robolectric = "4.16.1"
 roborazzi = "1.75.0"
 junit4 = "4.13.2"
+maplibreCompose = "0.18.0"
+jsprit = "2.0.0"
 
 [libraries]
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -30,6 +32,9 @@ junit4 = { module = "junit:junit", version.ref = "junit4" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibreCompose" }
+maplibre-runtime-vulkan-android = { module = "org.maplibre.compose:maplibre-compose-runtime-vulkan-android", version.ref = "maplibreCompose" }
+jsprit-core = { module = "com.graphhopper:jsprit-core", version.ref = "jsprit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

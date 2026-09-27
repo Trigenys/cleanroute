@@ -49,6 +49,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.maplibre.compose)
+    debugRuntimeOnly(libs.maplibre.runtime.vulkan.android)
 
     testImplementation(libs.junit4)
     testImplementation(libs.androidx.test.ext.junit)
@@ -56,6 +58,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.jsprit.core)
 }
 
 roborazzi {
