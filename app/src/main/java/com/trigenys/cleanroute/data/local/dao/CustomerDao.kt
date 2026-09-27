@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.trigenys.cleanroute.data.local.CustomerDirectoryRow
+import com.trigenys.cleanroute.data.local.CustomerExportRow
 import com.trigenys.cleanroute.data.local.entity.CustomerEntity
 import com.trigenys.cleanroute.data.local.entity.OutboxOperationEntity
 import com.trigenys.cleanroute.data.local.entity.ServicePlanEntity
@@ -16,6 +17,28 @@ import com.trigenys.cleanroute.data.local.entity.ZoneEntity
 abstract class CustomerDao {
     @Query("SELECT * FROM customers WHERE id = :id LIMIT 1")
     abstract suspend fun get(id: String): CustomerEntity?
+
+    @Query("SELECT * FROM customers WHERE externalId = :externalId LIMIT 1")
+    abstract suspend fun getByExternalId(externalId: String): CustomerEntity?
+
+    @Query("SELECT * FROM customers ORDER BY name COLLATE NOCASE ASC")
+    abstract suspend fun getAll(): List<CustomerEntity>
+
+    @Query(
+        """
+        SELECT
+            c.*,
+            COALESCE(z.name, '') AS zoneName,
+            COALESCE(sp.label, '') AS planLabel,
+            COALESCE(sp.cadence, 'CUSTOM') AS cadence,
+            COALESCE(sp.monthlyFeeXaf, 0) AS monthlyFeeXaf
+        FROM customers c
+        LEFT JOIN zones z ON z.id = c.zoneId
+        LEFT JOIN service_plans sp ON sp.id = c.servicePlanId
+        ORDER BY c.name COLLATE NOCASE ASC
+        """
+    )
+    abstract suspend fun getAllForExport(): List<CustomerExportRow>
 
     @Query(
         """

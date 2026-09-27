@@ -14,6 +14,9 @@ abstract class PaymentDao {
     @Query("SELECT * FROM payments WHERE id = :id LIMIT 1")
     abstract suspend fun get(id: String): PaymentEntity?
 
+    @Query("SELECT * FROM payments ORDER BY recordedAtEpochMs ASC, id ASC")
+    abstract suspend fun getAllForExport(): List<PaymentEntity>
+
     @Query(
         """
         SELECT * FROM payments
