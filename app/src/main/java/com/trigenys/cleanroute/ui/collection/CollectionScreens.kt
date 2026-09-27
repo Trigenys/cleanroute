@@ -199,8 +199,8 @@ fun DailyRouteScreen(
     onBack: () -> Unit,
     onToggleActions: (CollectionVisitId) -> Unit,
     onOutcome: (CollectionVisitId, CollectionVisitStatus) -> Unit,
-    onCall: (String) -> Unit,
-    onWhatsApp: (String) -> Unit
+    onCall: (DailyCollectionStop) -> Unit,
+    onWhatsApp: (DailyCollectionStop) -> Unit
 ) {
     val progress = if (route.stops.isEmpty()) {
         0f
@@ -283,8 +283,8 @@ fun DailyRouteScreen(
                     busy = busy,
                     onToggleActions = { onToggleActions(stop.visit.id) },
                     onOutcome = { outcome -> onOutcome(stop.visit.id, outcome) },
-                    onCall = stop.phone?.let { phone -> { onCall(phone) } },
-                    onWhatsApp = stop.phone?.let { phone -> { onWhatsApp(phone) } }
+                    onCall = stop.phone?.let { { onCall(stop) } },
+                    onWhatsApp = stop.phone?.let { { onWhatsApp(stop) } }
                 )
             }
         }
@@ -501,8 +501,8 @@ private fun DailyRouteActionsPreview() {
             onBack = {},
             onToggleActions = {},
             onOutcome = { _, _ -> },
-            onCall = {},
-            onWhatsApp = {}
+            onCall = { _ -> },
+            onWhatsApp = { _ -> }
         )
     }
 }

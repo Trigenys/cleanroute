@@ -15,7 +15,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import com.trigenys.cleanroute.communication.ContactLaunchResult
+import com.trigenys.cleanroute.communication.CustomerContactService
+import com.trigenys.cleanroute.communication.CustomerMessageData
+import com.trigenys.cleanroute.communication.CustomerMessageKind
+import com.trigenys.cleanroute.domain.CollectionVisitStatus
 import com.trigenys.cleanroute.domain.CustomerDirectoryEntry
 import com.trigenys.cleanroute.domain.CustomerDraft
 import com.trigenys.cleanroute.domain.CustomerId
@@ -36,6 +42,7 @@ import com.trigenys.cleanroute.ui.payment.PaymentReverseDialog
 fun CustomerDirectoryRoute(
     repository: CustomerRepository,
     paymentRepository: PaymentRepository,
+    contactService: CustomerContactService,
     innerPadding: PaddingValues
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -51,6 +58,8 @@ fun CustomerDirectoryRoute(
     var paymentSubmissionId by remember { mutableStateOf<String?>(null) }
     var paymentError by remember { mutableStateOf<String?>(null) }
     var paymentToReverse by remember { mutableStateOf<Payment?>(null) }
+    var contactFeedback by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(query, refreshVersion) {
@@ -92,7 +101,77 @@ fun CustomerDirectoryRoute(
             onReversePayment = { payment ->
                 paymentError = null
                 paymentToReverse = payment
-            }
+            },
+            onCall = {
+                val current = requireNotNull(profile)
+                val phone = current.customer.phone
+                if (phone != null) {
+                    scope.launch {
+                        contactFeedback = contactService.call(
+                            context = context,
+                            customerId = current.customer.id,
+                            rawPhone = phone,
+                            at = Instant.now()
+                        ).feedback()
+                    }
+                }
+            },
+            onWhatsApp = {
+                val current = requireNotNull(profile)
+                val phone = current.customer.phone
+                if (phone != null) {
+                    val period = YearMonth.now()
+                    val completedVisit = current.recentVisits.firstOrNull {
+                        it.status == CollectionVisitStatus.COLLECTED
+                    }
+                    val kind = when {
+                        current.outstandingThisPeriodXaf > 0 ->
+                            CustomerMessageKind.PAYMENT_REMINDER
+                        current.nextCollectionDate != null ->
+                            CustomerMessageKind.UPCOMING_COLLECTION
+                        completedVisit != null ->
+                            CustomerMessageKind.COLLECTION_COMPLETED
+                        else -> null
+                    }
+                    val data = kind?.let { messageKind ->
+                        CustomerMessageData(
+                            customerName = current.customer.name,
+                            collectionDate = when (messageKind) {
+                                CustomerMessageKind.UPCOMING_COLLECTION ->
+                                    current.nextCollectionDate
+                                CustomerMessageKind.COLLECTION_COMPLETED ->
+                                    completedVisit?.scheduledDate
+                                CustomerMessageKind.PAYMENT_REMINDER -> null
+                            },
+                            outstandingXaf = if (
+                                messageKind == CustomerMessageKind.PAYMENT_REMINDER
+                            ) {
+                                current.outstandingThisPeriodXaf
+                            } else {
+                                null
+                            },
+                            servicePeriod = if (
+                                messageKind == CustomerMessageKind.PAYMENT_REMINDER
+                            ) {
+                                period
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                    scope.launch {
+                        contactFeedback = contactService.whatsApp(
+                            context = context,
+                            customerId = current.customer.id,
+                            rawPhone = phone,
+                            kind = kind,
+                            data = data,
+                            at = Instant.now()
+                        ).feedback()
+                    }
+                }
+            },
+            contactFeedback = contactFeedback
         )
         selectedCustomerId != null -> CustomerLoadingScreen(innerPadding)
         else -> CustomerDirectoryScreen(
@@ -201,3 +280,11 @@ private fun CustomerLoadingScreen(innerPadding: PaddingValues) {
         CircularProgressIndicator()
     }
 }
+
+
+private fun ContactLaunchResult.feedback(): String? =
+    when (this) {
+        ContactLaunchResult.Launched -> null
+        is ContactLaunchResult.Unavailable -> message
+        is ContactLaunchResult.Failed -> message
+    }

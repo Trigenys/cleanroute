@@ -49,6 +49,14 @@ interface CustomerRepository {
     suspend fun upsert(customer: Customer)
 }
 
+interface ContactActionRepository {
+    suspend fun record(
+        customerId: CustomerId,
+        channel: ContactChannel,
+        at: Instant
+    ): ContactAction
+}
+
 interface CollectionVisitRepository {
     suspend fun get(id: CollectionVisitId): CollectionVisit?
     suspend fun upsert(visit: CollectionVisit)
