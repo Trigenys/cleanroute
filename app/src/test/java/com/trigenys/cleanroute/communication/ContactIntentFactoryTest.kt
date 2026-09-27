@@ -18,7 +18,8 @@ class ContactIntentFactoryTest {
         val intent = factory.dial("690 00 00 01")
 
         assertEquals(Intent.ACTION_DIAL, intent?.action)
-        assertEquals("tel:+237690000001", intent?.data.toString())
+        assertEquals("tel", intent?.data?.scheme)
+        assertEquals("+237690000001", intent?.data?.schemeSpecificPart)
     }
 
     @Test
