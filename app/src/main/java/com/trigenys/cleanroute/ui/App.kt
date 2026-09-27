@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.CustomerRepository
+import com.trigenys.cleanroute.domain.PaymentRepository
 import com.trigenys.cleanroute.ui.collection.CollectionWorkflowRoute
 import com.trigenys.cleanroute.ui.collection.ZoneWorkloadScreen
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
@@ -34,16 +35,16 @@ import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryRoute
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
+import com.trigenys.cleanroute.ui.more.MoreRoute
 import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
-import com.trigenys.cleanroute.ui.transfer.DataTransferRoute
-import com.trigenys.cleanroute.ui.transfer.DataTransferScreen
 
 @Composable
 fun App(
     customerRepository: CustomerRepository? = null,
     collectionWorkflowRepository: CollectionWorkflowRepository? = null,
+    paymentRepository: PaymentRepository? = null,
     spreadsheetService: CustomerSpreadsheetService? = null
 ) {
     var selectedDestination by rememberSaveable {
@@ -55,6 +56,7 @@ fun App(
         onDestinationSelected = { selectedDestination = it },
         customerRepository = customerRepository,
         collectionWorkflowRepository = collectionWorkflowRepository,
+        paymentRepository = paymentRepository,
         spreadsheetService = spreadsheetService
     )
 }
@@ -65,6 +67,7 @@ private fun CleanRouteShell(
     onDestinationSelected: (AppDestination) -> Unit,
     customerRepository: CustomerRepository?,
     collectionWorkflowRepository: CollectionWorkflowRepository?,
+    paymentRepository: PaymentRepository?,
     spreadsheetService: CustomerSpreadsheetService?
 ) {
     Scaffold(
@@ -101,7 +104,7 @@ private fun CleanRouteShell(
             }
 
             AppDestination.CLIENTS -> {
-                if (customerRepository == null) {
+                if (customerRepository == null || paymentRepository == null) {
                     CustomerDirectoryScreen(
                         entries = emptyList(),
                         query = "",
@@ -114,29 +117,18 @@ private fun CleanRouteShell(
                 } else {
                     CustomerDirectoryRoute(
                         repository = customerRepository,
+                        paymentRepository = paymentRepository,
                         innerPadding = innerPadding
                     )
                 }
             }
 
             AppDestination.MORE -> {
-                if (spreadsheetService == null) {
-                    DataTransferScreen(
-                        innerPadding = innerPadding,
-                        plan = null,
-                        busy = false,
-                        message = null,
-                        errorMessage = null,
-                        onPickImport = {},
-                        onApplyImport = {},
-                        onExport = {}
-                    )
-                } else {
-                    DataTransferRoute(
-                        service = spreadsheetService,
-                        innerPadding = innerPadding
-                    )
-                }
+                MoreRoute(
+                    paymentRepository = paymentRepository,
+                    spreadsheetService = spreadsheetService,
+                    innerPadding = innerPadding
+                )
             }
         }
     }
