@@ -14,6 +14,9 @@ abstract class CollectionVisitDao {
     @Query("SELECT * FROM collection_visits WHERE id = :id LIMIT 1")
     abstract suspend fun get(id: String): CollectionVisitEntity?
 
+    @Query("SELECT * FROM collection_visits ORDER BY scheduledDateIso ASC, id ASC")
+    abstract suspend fun getAllForExport(): List<CollectionVisitEntity>
+
     @Query(
         """
         SELECT * FROM collection_visits

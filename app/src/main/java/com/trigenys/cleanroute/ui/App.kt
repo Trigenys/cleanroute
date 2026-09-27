@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
 import com.trigenys.cleanroute.ui.components.CleanRoutePrimaryButton
@@ -38,9 +38,14 @@ import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
+import com.trigenys.cleanroute.ui.transfer.DataTransferRoute
+import com.trigenys.cleanroute.ui.transfer.DataTransferScreen
 
 @Composable
-fun App(customerRepository: CustomerRepository? = null) {
+fun App(
+    customerRepository: CustomerRepository? = null,
+    spreadsheetService: CustomerSpreadsheetService? = null
+) {
     var selectedDestination by rememberSaveable {
         mutableStateOf(AppDestination.HOME)
     }
@@ -48,7 +53,8 @@ fun App(customerRepository: CustomerRepository? = null) {
     CleanRouteShell(
         selectedDestination = selectedDestination,
         onDestinationSelected = { selectedDestination = it },
-        customerRepository = customerRepository
+        customerRepository = customerRepository,
+        spreadsheetService = spreadsheetService
     )
 }
 
@@ -56,7 +62,8 @@ fun App(customerRepository: CustomerRepository? = null) {
 private fun CleanRouteShell(
     selectedDestination: AppDestination,
     onDestinationSelected: (AppDestination) -> Unit,
-    customerRepository: CustomerRepository?
+    customerRepository: CustomerRepository?,
+    spreadsheetService: CustomerSpreadsheetService?
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -96,12 +103,25 @@ private fun CleanRouteShell(
                     )
                 }
             }
-            AppDestination.MORE -> ModulePlaceholder(
-                innerPadding = innerPadding,
-                title = "Plus",
-                description = "Paiements, import Excel, paramètres et autres outils seront regroupés ici.",
-                icon = Icons.Outlined.MoreHoriz
-            )
+            AppDestination.MORE -> {
+                if (spreadsheetService == null) {
+                    DataTransferScreen(
+                        innerPadding = innerPadding,
+                        plan = null,
+                        busy = false,
+                        message = null,
+                        errorMessage = null,
+                        onPickImport = {},
+                        onApplyImport = {},
+                        onExport = {}
+                    )
+                } else {
+                    DataTransferRoute(
+                        service = spreadsheetService,
+                        innerPadding = innerPadding
+                    )
+                }
+            }
         }
     }
 }

@@ -14,6 +14,12 @@ interface CatalogDao {
     @Query("SELECT * FROM service_plans WHERE id = :id LIMIT 1")
     suspend fun getServicePlan(id: String): ServicePlanEntity?
 
+    @Query("SELECT * FROM zones")
+    suspend fun getAllZones(): List<ZoneEntity>
+
+    @Query("SELECT * FROM service_plans")
+    suspend fun getAllServicePlans(): List<ServicePlanEntity>
+
     @Upsert
     suspend fun upsertZone(zone: ZoneEntity)
 
