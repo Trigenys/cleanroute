@@ -2,6 +2,7 @@ package com.trigenys.cleanroute.data.transfer
 
 import androidx.room.Room
 import com.trigenys.cleanroute.data.local.CleanRouteDatabase
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
@@ -63,6 +64,64 @@ class CustomerSpreadsheetServiceTest {
         assertEquals(0, second.summary.creates)
         assertEquals(0, second.summary.updates)
         assertEquals(4, second.summary.unchanged)
+    }
+
+
+    @Test
+    fun canonicalReferenceWorkbookFirstSheetIsImportableIdempotentAndExportable() = runBlocking {
+        val file = copyFixture(
+            "fixtures/cleanroute-reference-clients-v1.csv",
+            ".csv"
+        )
+        val now = Instant.parse("2026-09-27T00:00:00Z")
+
+        val first = service.previewImport(
+            file = file,
+            displayName = "CleanRoute_Reference_Workbook_v1.csv",
+            now = now
+        )
+
+        assertTrue(first.fatalIssues.isEmpty())
+        assertTrue(first.unknownHeaders.isEmpty())
+        assertEquals(40, first.summary.creates)
+        assertEquals(0, first.summary.updates)
+        assertEquals(0, first.summary.unchanged)
+        assertEquals(0, first.summary.invalid)
+
+        service.applyImport(first)
+
+        assertEquals(40, database.customerDao().getAll().size)
+        assertEquals(40, database.outboxDao().count())
+
+        val retry = service.previewImport(
+            file = file,
+            displayName = "CleanRoute_Reference_Workbook_v1.csv",
+            now = now.plusSeconds(60)
+        )
+
+        assertEquals(0, retry.summary.creates)
+        assertEquals(0, retry.summary.updates)
+        assertEquals(40, retry.summary.unchanged)
+        assertEquals(0, retry.summary.invalid)
+
+        val output = ByteArrayOutputStream()
+        service.exportXlsx(output)
+        val exported = File.createTempFile("cleanroute-reference-export-", ".xlsx")
+        exported.writeBytes(output.toByteArray())
+
+        val roundTrip = service.previewImport(
+            file = exported,
+            displayName = "cleanroute-export.xlsx",
+            now = now.plusSeconds(120)
+        )
+
+        assertTrue(roundTrip.fatalIssues.isEmpty())
+        assertEquals(0, roundTrip.summary.creates)
+        assertEquals(0, roundTrip.summary.updates)
+        assertEquals(40, roundTrip.summary.unchanged)
+        assertEquals(0, roundTrip.summary.invalid)
+        assertTrue(roundTrip.unknownHeaders.contains("created_at"))
+        assertTrue(roundTrip.unknownHeaders.contains("updated_at"))
     }
 
     @Test

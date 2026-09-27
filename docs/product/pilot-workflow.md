@@ -1,117 +1,103 @@
-# Pilot workflow contract — provisional discovery baseline
+# Pilot workflow contract — canonical reference baseline
 
-Status: **Provisional — awaiting the operator's real workbook/schema**  
-Issue: #1  
-Date: 2026-09-26
+Status: **Canonical v1 — no legacy workbook exists**  
+Issues: #1, #6, #17  
+Date: 2026-09-27
 
-## Why this document exists
+## Product reality
 
-CleanRoute must replace a workflow that currently lives in a phone plus Excel without inventing business rules that do not exist in the operator's real process.
+CleanRoute is not migrating an existing production workbook. No historical customer spreadsheet exists to validate.
 
-This document defines the minimum product contract we can safely use for engineering fixtures now. Every field marked **unverified** remains a discovery item and must not become a hard-coded production assumption.
+The initial schema is therefore defined by the CleanRoute reference workbook v1 and its versioned CSV first-sheet fixture.
+
+This is intentional: the format stays agnostic and future operator spreadsheets are adapted into the canonical model through explicit header aliases/mapping rather than becoming hard-coded product assumptions.
 
 ## Representative day of operations
 
-1. The owner opens CleanRoute and selects today's zone.
-2. The app shows customers expected for collection in that zone.
-3. The collector opens or expands a stop and records exactly one current outcome:
+1. The owner imports or creates customers.
+2. The owner selects today's zone.
+3. The app shows active customers for that zone.
+4. The collector records exactly one current outcome per stop:
    - Collected;
    - Absent;
    - No waste.
-4. If a result was entered incorrectly, it can be corrected without deleting the audit trail.
-5. The collector can call or open WhatsApp for the customer when contact is required.
-6. The owner can record a payment independently from the collection result.
-7. The app remains fully usable while offline.
-8. At the end of the work cycle, the owner can identify unpaid customers and export business-continuity data that can be opened in Excel.
+5. Corrections preserve an audit revision.
+6. Call/WhatsApp actions remain explicit.
+7. Payments are recorded independently from collection outcomes.
+8. Core work remains available offline.
+9. At the end of the cycle, the owner reviews arrears and exports Excel-compatible business-continuity data.
 
-## Proposed customer import contract
+## Canonical customer import contract
 
-The real workbook headers are **not yet available**, so the following names are canonical CleanRoute fields, not claims about the current spreadsheet.
-
-| CleanRoute field | Required | Proposed import aliases | Verification status |
+| CleanRoute field | Required | Examples / aliases | Rule |
 | --- | --- | --- | --- |
-| external_id | no | id, code_client, customer_id | unverified |
-| name | yes | nom, client, nom_client | unverified |
-| phone | yes for contact actions | telephone, téléphone, tel, mobile | unverified |
-| zone | yes | zone, quartier, secteur | unverified |
-| address_label | no | adresse, repere, repère | unverified |
-| collection_frequency | yes | frequence, fréquence, periodicite | unverified |
-| service_day | no | jour, jour_passage, passage | unverified |
-| monthly_fee_xaf | yes for payment ledger | montant, abonnement, tarif | unverified |
-| status | no | statut, etat, état | unverified |
-| notes | no | note, notes, observation | unverified |
+| external_id | no, recommended | id, code_client, customer_id, client_id, code | Stable identity for safe re-import |
+| name | yes | nom, client, nom_client, customer, customer_name | Human-readable customer label |
+| phone | no | telephone, tel, mobile, numero | Contact action input |
+| zone | yes | quartier, secteur, area, neighborhood | Operational grouping, free text |
+| address_label | no | adresse, repere, reference, location | Human-readable local reference |
+| collection_frequency | no | frequence, periodicite, cadence | weekly / biweekly / monthly / custom |
+| monthly_fee_xaf | yes | montant, abonnement, tarif, prix, fee | Positive XAF service amount |
+| status | no | statut, etat, state | active / suspended |
 
-### Import rules we can safely implement
+## Import invariants
 
-- match columns by normalized header names, never fixed column positions;
-- trim whitespace and tolerate harmless casing/accent differences;
-- preview create/update/skip counts before mutation;
-- preserve a source identifier when present;
-- never silently discard an unknown column;
-- importing the same logical customer twice must not create duplicates;
-- reject rows that cannot satisfy the minimum required fields instead of guessing values.
+- map by normalized headers, never fixed column position;
+- trim harmless whitespace/case/accent differences;
+- preview create/update/unchanged/invalid before mutation;
+- preserve stable source identity;
+- repeated import of the same logical customer must not duplicate;
+- unknown headers are surfaced;
+- rows missing required values fail explicitly;
+- import remains capped at 20,000 rows per file.
 
-## Proposed collection model
+## Collection model
 
-A scheduled stop begins without a final outcome. A collector may then record one of:
+Current outcomes:
 
-- `COLLECTED`
-- `ABSENT`
-- `NO_WASTE`
+- COLLECTED
+- ABSENT
+- NO_WASTE
 
-A correction creates a new revision of the same visit rather than a second independent visit for the same customer/day.
+A repeated identical outcome is idempotent.
 
-### Unverified business questions
+A correction creates a new revision instead of a second unrelated visit.
 
-- Can one customer receive more than one collection on the same day?
-- Are collection days fixed by subscription or chosen dynamically by zone?
-- Are there weekly, biweekly and monthly plans, or another cadence?
-- Does "absent" still count as a completed attempted visit?
-- Are collectors assigned to fixed zones?
+The pilot population rule remains all ACTIVE customers in the explicitly selected zone until real scheduling requirements justify a richer calendar.
 
-These questions must stay configurable or unresolved until pilot evidence answers them.
+## Payment model
 
-## Proposed payment model
+A payment is a ledger event attached to a customer and service period.
 
-A payment is a ledger event associated with a customer and a service period. The first implementation must support:
+Current supported method labels include:
 
 - cash;
 - Orange Money;
-- MTN MoMo;
-- explicit correction/reversal rather than destructive deletion.
+- MTN MoMo.
 
-### Unverified payment questions
+The domain supports partial payments and explicit reversal rather than destructive deletion.
 
-- Is the subscription always monthly?
-- Can a customer make partial payments?
-- Can a customer prepay several periods?
-- Are collection fees flat per customer or dependent on plan/frequency?
-- Is a receipt/reference number currently captured?
-- Are historical arrears already present in the workbook?
+Provider labels remain configurable business values rather than architecture.
 
-Until confirmed, payment methods are configurable values and the domain must not assume one provider.
+## Canonical fixture
 
-## Minimum fields for engineering fixtures
+Repository fixture:
 
-The synthetic fixture committed with this note deliberately contains only fields required to exercise:
+`app/src/test/resources/fixtures/cleanroute-reference-clients-v1.csv`
 
-- customer search;
-- zone filtering;
-- active/suspended state;
-- collection cadence;
-- payment amount;
-- import idempotency.
+Population:
 
-No real customer information is included.
+- 40 synthetic customers;
+- 4 zones;
+- varied cadence / fee / status values;
+- no real personal data.
 
-## Discovery exit criteria
+The complete operator workbook also includes payment, collection, catalogue, mapping, scenario and dashboard sheets.
 
-Issue #1 should only be closed when the operator's actual workbook or an anonymized copy has been reviewed and:
+## Exit criteria
 
-- real column names are mapped to CleanRoute fields;
-- required/optional fields are confirmed;
-- at least one real collection-day scenario is confirmed;
-- payment and arrears behavior is confirmed;
-- any unsupported legacy data has an explicit migration decision.
+#1 no longer waits for a nonexistent workbook. It can close once the canonical v1 model is committed and accepted.
 
-Until then, this file is a safe engineering baseline, not a claim that the existing Excel format has been validated.
+#6 can close once the canonical fixture passes import → retry → export → re-read tests in CI.
+
+#17 remains a field-usability gate: a real operator must still use the app through the runbook. The customer data used in that pilot may remain synthetic.
