@@ -47,3 +47,16 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 **Fix:** remove the explicit `weight` import and let Kotlin resolve `Modifier.weight(...)` through the enclosing `RowScope`. The unused icon import discovered during the same pass was removed as well.
 
 **Prevention rule:** never explicitly import `androidx.compose.foundation.layout.weight` in this Compose baseline. Use `Modifier.weight(...)` only inside a `RowScope` or `ColumnScope`, and treat duplicated compile failures across CI/visual workflows as one source failure until proven otherwise.
+
+
+## 2026-09-27 — `RoomDatabase` is not a Kotlin `use {}` receiver
+
+**What happened:** Android CI and Roborazzi both failed while compiling `RoomPersistenceTest`.
+
+**Root cause:** the test wrapped `CleanRouteDatabase` in Kotlin's `use { }` helper. `RoomDatabase` exposes `close()`, but it is not a receiver type accepted by the `Closeable.use` extension in this build baseline, so Kotlin could not infer the generic receiver/result types.
+
+**Why two workflows failed:** both pipelines compile the same unit-test sources before their own CI or screenshot tasks.
+
+**Fix:** manage the database lifetime explicitly with `try/finally` and call `database.close()` in the `finally` block.
+
+**Prevention rule:** do not assume that an API exposing `close()` implements Kotlin/JVM `Closeable`. For Room database lifecycle tests, use explicit `try/finally` unless the concrete API contract is verified to implement a compatible closeable interface.
