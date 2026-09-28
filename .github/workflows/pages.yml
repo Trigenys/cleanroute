@@ -32,6 +32,7 @@ jobs:
         run: |
           test -s site/dist/index.html
           test -s site/dist/cleanroute-mark.svg
+          test -s site/dist/cleanroute-mark.png
           test -s site/dist/cleanroute-download-qr.svg
           test -s site/dist/CNAME
           grep -q '<title>CleanRoute' site/dist/index.html
@@ -42,6 +43,9 @@ jobs:
           grep -q './cleanroute-download-qr.svg' site/dist/index.html
           grep -q 'releases/download/pilot-latest/CleanRoute-pilot.apk' site/dist/index.html
           grep -q 'Télécharger l’application' site/dist/index.html
+          grep -q 'ramassage des déchets' site/dist/index.html
+          grep -q 'https://cleanroute.trigenys.com/cleanroute-mark.png?v=3' site/dist/index.html
+          grep -q 'og:image:type' site/dist/index.html
           grep -q 'Room 2.8.5' site/dist/index.html
           grep -q 'Kotlin 2.4.20' site/dist/index.html
           ! grep -q 'Sync Engine v2.4' site/dist/index.html
