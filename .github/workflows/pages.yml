@@ -32,12 +32,14 @@ jobs:
         run: |
           test -s site/dist/index.html
           test -s site/dist/cleanroute-mark.svg
+          test -s site/dist/cleanroute-download-qr.svg
           test -s site/dist/CNAME
           grep -q '<title>CleanRoute' site/dist/index.html
           grep -q 'id="le-produit"' site/dist/index.html
           grep -q 'id="pilot-access"' site/dist/index.html
           grep -q 'https://cleanroute.trigenys.com/' site/dist/index.html
           grep -q './cleanroute-mark.svg' site/dist/index.html
+          grep -q './cleanroute-download-qr.svg' site/dist/index.html
           grep -q 'releases/download/pilot-latest/CleanRoute-pilot.apk' site/dist/index.html
           grep -q 'Télécharger l’application' site/dist/index.html
           grep -q 'Room 2.8.5' site/dist/index.html
