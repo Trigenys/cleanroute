@@ -1,25 +1,31 @@
 package com.trigenys.cleanroute.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 
 enum class StatusTone {
@@ -37,11 +43,11 @@ fun CleanRouteCard(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 1.dp
         )
     ) {
         Column(
@@ -58,27 +64,59 @@ fun StatusChip(
     tone: StatusTone,
     modifier: Modifier = Modifier
 ) {
-    val colors = when (tone) {
-        StatusTone.SUCCESS ->
-            MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-        StatusTone.WARNING ->
-            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        StatusTone.NEUTRAL ->
-            MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+    val (containerColor, contentColor, dotColor) = when (tone) {
+        StatusTone.SUCCESS -> Triple(
+            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.62f),
+            MaterialTheme.colorScheme.onSecondaryContainer,
+            MaterialTheme.colorScheme.primary
+        )
+        StatusTone.WARNING -> Triple(
+            Color(0xFFFFE2A8),
+            Color(0xFF5B3A00),
+            Color(0xFFF59E0B)
+        )
+        StatusTone.NEUTRAL -> Triple(
+            MaterialTheme.colorScheme.surfaceContainer,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            MaterialTheme.colorScheme.outline
+        )
     }
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(999.dp),
-        color = colors.first,
-        contentColor = colors.second
+        shape = CircleShape,
+        color = containerColor,
+        contentColor = contentColor
     ) {
-        Text(
-            text = text,
+        Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.labelMedium
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(dotColor, CircleShape)
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
+}
+
+@Composable
+fun OfflineStatusChip(
+    modifier: Modifier = Modifier,
+    isUpToDate: Boolean = true
+) {
+    StatusChip(
+        text = if (isUpToDate) "HORS CONNEXION · À JOUR" else "HORS CONNEXION",
+        tone = StatusTone.NEUTRAL,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -88,30 +126,36 @@ fun KpiTile(
     modifier: Modifier = Modifier,
     supportingText: String? = null
 ) {
-    Surface(
+    Card(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.48f)
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = 34.sp,
+                lineHeight = 38.sp,
+                fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             supportingText?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -126,10 +170,23 @@ fun CleanRoutePrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
-            .defaultMinSize(minHeight = 52.dp)
+        modifier = modifier.defaultMinSize(minHeight = 56.dp),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 3.dp,
+            pressedElevation = 1.dp
+        ),
+        contentPadding = ButtonDefaults.ContentPadding
     ) {
-        Text(text = text)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -139,32 +196,45 @@ fun CleanRouteSecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedButton(
+    Button(
         onClick = onClick,
-        modifier = modifier
-            .defaultMinSize(minHeight = 52.dp)
+        modifier = modifier.defaultMinSize(minHeight = 56.dp),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp
+        ),
+        contentPadding = ButtonDefaults.ContentPadding
     ) {
-        Text(text = text)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Preview(showBackground = true, widthDp = 390)
 @Composable
 private fun ComponentsPreview() {
-    CleanRouteTheme {
+    CleanRouteTheme(darkTheme = false) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            OfflineStatusChip()
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatusChip("Actif", StatusTone.SUCCESS)
                 StatusChip("À payer", StatusTone.WARNING)
-                StatusChip("En attente", StatusTone.NEUTRAL)
             }
             KpiTile(
                 label = "Clients actifs",
                 value = "178",
-                supportingText = "Exemple visuel",
+                supportingText = "Voir la liste",
                 modifier = Modifier.fillMaxWidth()
             )
             CleanRoutePrimaryButton(
