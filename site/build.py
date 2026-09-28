@@ -15,7 +15,16 @@ parts = sorted(SRC.glob("*.html"))
     encoding="utf-8",
 )
 
-for name in ["favicon.svg", "robots.txt", "sitemap.xml", "404.html"]:
+for name in [
+    "cleanroute-mark.png",
+    "cleanroute-logo-horizontal.png",
+    "robots.txt",
+    "sitemap.xml",
+    "404.html",
+    "CNAME",
+]:
     shutil.copy2(ROOT / name, DIST / name)
+
+(DIST / ".nojekyll").write_text("", encoding="utf-8")
 
 print(DIST / "index.html")

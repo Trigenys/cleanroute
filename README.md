@@ -1,5 +1,7 @@
 # CleanRoute
 
+<p align="center"><img src="brand/cleanroute-logo-horizontal.png" alt="CleanRoute" width="360"></p>
+
 > Offline-first Android operations for neighborhood waste-collection businesses.
 
 CleanRoute is a Trigenys product experiment designed for operators who currently run customer lists, collection rounds and payments with a phone plus Excel. The product goal is deliberately simple: make the daily field workflow easier than the spreadsheet without trapping the business in a complex ERP.
