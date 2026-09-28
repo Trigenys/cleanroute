@@ -17,6 +17,7 @@ parts = sorted(SRC.glob("*.html"))
 
 for name in [
     "cleanroute-mark.svg",
+    "cleanroute-mark.png",
     "cleanroute-download-qr.svg",
     "robots.txt",
     "sitemap.xml",
