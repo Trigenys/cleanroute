@@ -42,6 +42,7 @@ import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.more.MoreRoute
 import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
+import com.trigenys.cleanroute.ui.navigation.CleanRouteTopBar
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 
 @Composable
@@ -85,6 +86,11 @@ private fun CleanRouteShell(
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            CleanRouteTopBar(
+                onProfileClick = { onDestinationSelected(AppDestination.MORE) }
+            )
+        },
         bottomBar = {
             CleanRouteBottomBar(
                 selectedDestination = selectedDestination,
