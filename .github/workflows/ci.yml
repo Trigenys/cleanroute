@@ -3,8 +3,23 @@ name: Android CI
 on:
   push:
     branches: [main]
+    paths:
+      - "app/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "app/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -21,5 +36,5 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.6.0"
-      - name: Lint, test and assemble
-        run: gradle :app:lintDebug :app:testDebugUnitTest :app:assembleDebug :app:assemblePilot
+      - name: Lint, test and assemble debug
+        run: gradle :app:lintDebug :app:testDebugUnitTest :app:assembleDebug

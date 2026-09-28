@@ -3,6 +3,18 @@ name: Visual regression
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "app/src/main/java/com/trigenys/cleanroute/ui/**"
+      - "app/src/main/res/values/**"
+      - "app/src/main/res/drawable/**"
+      - "app/src/test/java/com/trigenys/cleanroute/ui/**"
+      - "app/src/test/screenshots/**"
+      - "app/build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+      - ".github/workflows/visual-regression.yml"
   workflow_dispatch:
 
 permissions:

@@ -1,7 +1,7 @@
 name: Pilot APK
 
 on:
-  pull_request:
+  push:
     branches: [main]
     paths:
       - "app/**"
@@ -10,7 +10,6 @@ on:
       - "settings.gradle.kts"
       - "build.gradle.kts"
       - ".github/workflows/pilot-apk.yml"
-      - "docs/pilot/**"
   workflow_dispatch:
 
 permissions:

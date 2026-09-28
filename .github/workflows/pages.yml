@@ -14,12 +14,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: "pages"
+  group: "pages-branch"
   cancel-in-progress: false
 
 jobs:
@@ -33,10 +31,15 @@ jobs:
         shell: bash
         run: |
           test -s site/dist/index.html
+          test -s site/dist/cleanroute-mark.png
+          test -s site/dist/cleanroute-logo-horizontal.png
+          test -s site/dist/CNAME
           grep -q '<title>CleanRoute' site/dist/index.html
           grep -q 'id="le-produit"' site/dist/index.html
           grep -q 'id="pilot-access"' site/dist/index.html
           grep -q 'https://cleanroute.trigenys.com/' site/dist/index.html
+          grep -q './cleanroute-mark.png' site/dist/index.html
+          grep -q './cleanroute-logo-horizontal.png' site/dist/index.html
           grep -q 'Room 2.8.5' site/dist/index.html
           grep -q 'Kotlin 2.4.20' site/dist/index.html
           ! grep -q 'Sync Engine v2.4' site/dist/index.html
@@ -46,23 +49,36 @@ jobs:
           ! grep -q 'KML' site/dist/index.html
           ! grep -q 'chiffrée localement' site/dist/index.html
 
-  deploy:
-    if: github.event_name != 'pull_request'
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: validate
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
-      - name: Build static landing
-        run: python site/build.py
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+      - name: Checkout source
+        uses: actions/checkout@v7
         with:
-          path: site/dist
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          path: source
+
+      - name: Build static landing
+        run: python source/site/build.py
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          path: publish
+
+      - name: Publish branch content
+        shell: bash
+        run: |
+          find publish -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R source/site/dist/. publish/
+          git -C publish config user.name "github-actions[bot]"
+          git -C publish config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publish add -A
+          if git -C publish diff --cached --quiet; then
+            echo "No landing changes to publish."
+            exit 0
+          fi
+          git -C publish commit -m "deploy: CleanRoute landing ${GITHUB_SHA::7}"
+          git -C publish push origin HEAD:gh-pages
