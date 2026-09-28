@@ -9,79 +9,171 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val CleanRouteLightColors = lightColorScheme(
-    primary = Color(0xFF176B4A),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFD6F5E4),
-    onPrimaryContainer = Color(0xFF073622),
-    secondary = Color(0xFF4D6357),
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD0E8D9),
-    onSecondaryContainer = Color(0xFF10271D),
-    tertiary = Color(0xFF8B5A10),
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFFFDDB1),
-    onTertiaryContainer = Color(0xFF2C1700),
-    background = Color(0xFFF7FAF8),
-    onBackground = Color(0xFF18201C),
-    surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF18201C),
-    surfaceVariant = Color(0xFFE2EAE5),
-    onSurfaceVariant = Color(0xFF414944),
-    outline = Color(0xFF717A74),
-    outlineVariant = Color(0xFFC1CAC4)
+    primary = Color(0xFF006948),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF00855D),
+    onPrimaryContainer = Color(0xFFF5FFF7),
+    secondary = Color(0xFF006C49),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFF6CF8BB),
+    onSecondaryContainer = Color(0xFF00714D),
+    tertiary = Color(0xFF006194),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFCCE5FF),
+    onTertiaryContainer = Color(0xFF004B73),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF93000A),
+    background = Color(0xFFF9F9FF),
+    onBackground = Color(0xFF111C2D),
+    surface = Color(0xFFF9F9FF),
+    onSurface = Color(0xFF111C2D),
+    surfaceVariant = Color(0xFFD8E3FB),
+    onSurfaceVariant = Color(0xFF3D4A42),
+    outline = Color(0xFF6D7A72),
+    outlineVariant = Color(0xFFBCCAC0),
+    inverseSurface = Color(0xFF263143),
+    inverseOnSurface = Color(0xFFECF1FF),
+    inversePrimary = Color(0xFF68DBA9),
+    surfaceTint = Color(0xFF006C4A),
+    surfaceBright = Color(0xFFF9F9FF),
+    surfaceDim = Color(0xFFCFDAF2),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF0F3FF),
+    surfaceContainer = Color(0xFFE7EEFF),
+    surfaceContainerHigh = Color(0xFFDEE8FF),
+    surfaceContainerHighest = Color(0xFFD8E3FB)
 )
 
 private val CleanRouteDarkColors = darkColorScheme(
-    primary = Color(0xFF9AD4B5),
+    primary = Color(0xFF68DBA9),
     onPrimary = Color(0xFF003823),
-    primaryContainer = Color(0xFF005234),
-    onPrimaryContainer = Color(0xFFB5F1CF),
-    secondary = Color(0xFFB4CCBE),
-    onSecondary = Color(0xFF20352A),
-    secondaryContainer = Color(0xFF364B3F),
-    onSecondaryContainer = Color(0xFFD0E8D9),
-    tertiary = Color(0xFFFFB95F),
-    onTertiary = Color(0xFF492900),
-    tertiaryContainer = Color(0xFF693C00),
-    onTertiaryContainer = Color(0xFFFFDDB1),
-    background = Color(0xFF101512),
-    onBackground = Color(0xFFE0E4E1),
-    surface = Color(0xFF151A17),
-    onSurface = Color(0xFFE0E4E1),
-    surfaceVariant = Color(0xFF414944),
-    onSurfaceVariant = Color(0xFFC1CAC4),
-    outline = Color(0xFF8B938E),
-    outlineVariant = Color(0xFF414944)
+    primaryContainer = Color(0xFF005137),
+    onPrimaryContainer = Color(0xFF85F8C4),
+    secondary = Color(0xFF4EDEA3),
+    onSecondary = Color(0xFF003824),
+    secondaryContainer = Color(0xFF005236),
+    onSecondaryContainer = Color(0xFF6FFBBE),
+    tertiary = Color(0xFF93CCFF),
+    onTertiary = Color(0xFF00344F),
+    tertiaryContainer = Color(0xFF004B73),
+    onTertiaryContainer = Color(0xFFCCE5FF),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF111C2D),
+    onBackground = Color(0xFFECF1FF),
+    surface = Color(0xFF111C2D),
+    onSurface = Color(0xFFECF1FF),
+    surfaceVariant = Color(0xFF3D4A42),
+    onSurfaceVariant = Color(0xFFBCCAC0),
+    outline = Color(0xFF87938A),
+    outlineVariant = Color(0xFF3D4A42),
+    inverseSurface = Color(0xFFECF1FF),
+    inverseOnSurface = Color(0xFF263143),
+    inversePrimary = Color(0xFF006948)
 )
 
+private val BaseTypography = Typography()
+
 private val CleanRouteTypography = Typography(
-    headlineLarge = Typography().headlineLarge.copy(
+    displayLarge = BaseTypography.displayLarge.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 40.sp,
+        lineHeight = 48.sp,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = (-0.8).sp
+    ),
+    headlineLarge = BaseTypography.headlineLarge.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
         fontWeight = FontWeight.Bold,
-        letterSpacing = (-0.4).sp
+        letterSpacing = (-0.32).sp
     ),
-    headlineSmall = Typography().headlineSmall.copy(
+    headlineMedium = BaseTypography.headlineMedium.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        fontWeight = FontWeight.Bold
+    ),
+    headlineSmall = BaseTypography.headlineSmall.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
         fontWeight = FontWeight.SemiBold
     ),
-    titleLarge = Typography().titleLarge.copy(
+    titleLarge = BaseTypography.titleLarge.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
         fontWeight = FontWeight.SemiBold
     ),
-    titleMedium = Typography().titleMedium.copy(
+    titleMedium = BaseTypography.titleMedium.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
         fontWeight = FontWeight.SemiBold
     ),
-    labelLarge = Typography().labelLarge.copy(
+    titleSmall = BaseTypography.titleSmall.copy(
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold
+    ),
+    bodyLarge = BaseTypography.bodyLarge.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        fontWeight = FontWeight.Medium
+    ),
+    bodyMedium = BaseTypography.bodyMedium.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    bodySmall = BaseTypography.bodySmall.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    labelLarge = BaseTypography.labelLarge.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.14.sp
+    ),
+    labelMedium = BaseTypography.labelMedium.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.36.sp
+    ),
+    labelSmall = BaseTypography.labelSmall.copy(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = 0.5.sp
     )
 )
 
 private val CleanRouteShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(18.dp),
-    large = RoundedCornerShape(24.dp)
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
