@@ -31,15 +31,13 @@ jobs:
         shell: bash
         run: |
           test -s site/dist/index.html
-          test -s site/dist/cleanroute-mark.png
-          test -s site/dist/cleanroute-logo-horizontal.png
+          test -s site/dist/cleanroute-mark.svg
           test -s site/dist/CNAME
           grep -q '<title>CleanRoute' site/dist/index.html
           grep -q 'id="le-produit"' site/dist/index.html
           grep -q 'id="pilot-access"' site/dist/index.html
           grep -q 'https://cleanroute.trigenys.com/' site/dist/index.html
-          grep -q './cleanroute-mark.png' site/dist/index.html
-          grep -q './cleanroute-logo-horizontal.png' site/dist/index.html
+          grep -q './cleanroute-mark.svg' site/dist/index.html
           grep -q 'Room 2.8.5' site/dist/index.html
           grep -q 'Kotlin 2.4.20' site/dist/index.html
           ! grep -q 'Sync Engine v2.4' site/dist/index.html
