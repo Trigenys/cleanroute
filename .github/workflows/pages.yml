@@ -38,6 +38,8 @@ jobs:
           grep -q 'id="pilot-access"' site/dist/index.html
           grep -q 'https://cleanroute.trigenys.com/' site/dist/index.html
           grep -q './cleanroute-mark.svg' site/dist/index.html
+          grep -q 'releases/download/pilot-latest/CleanRoute-pilot.apk' site/dist/index.html
+          grep -q 'Télécharger l’application' site/dist/index.html
           grep -q 'Room 2.8.5' site/dist/index.html
           grep -q 'Kotlin 2.4.20' site/dist/index.html
           ! grep -q 'Sync Engine v2.4' site/dist/index.html
