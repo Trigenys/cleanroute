@@ -12,6 +12,9 @@ on:
       - "site/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Pilot APK"]
+    types: [completed]
 
 permissions:
   contents: write
@@ -41,7 +44,8 @@ jobs:
           grep -q 'https://cleanroute.trigenys.com/' site/dist/index.html
           grep -q './cleanroute-mark.svg' site/dist/index.html
           grep -q './cleanroute-download-qr.svg' site/dist/index.html
-          grep -q 'releases/download/pilot-latest/CleanRoute-pilot.apk' site/dist/index.html
+          grep -q 'https://cleanroute.trigenys.com/CleanRoute-pilot.apk' site/dist/index.html
+          ! grep -q 'releases/download/pilot-latest/CleanRoute-pilot.apk' site/dist/index.html
           grep -q 'Télécharger l’application' site/dist/index.html
           grep -q 'ramassage des déchets' site/dist/index.html
           grep -q 'https://cleanroute.trigenys.com/cleanroute-mark.png?v=3' site/dist/index.html
@@ -56,7 +60,12 @@ jobs:
           ! grep -q 'chiffrée localement' site/dist/index.html
 
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -67,6 +76,21 @@ jobs:
 
       - name: Build static landing
         run: python source/site/build.py
+
+      - name: Fetch verified latest pilot APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP_DIR="$(mktemp -d)"
+          gh release download pilot-latest             --repo "$GITHUB_REPOSITORY"             --pattern 'CleanRoute-pilot.apk*'             --dir "$TMP_DIR"             --clobber
+          test -s "$TMP_DIR/CleanRoute-pilot.apk"
+          test -s "$TMP_DIR/CleanRoute-pilot.apk.sha256"
+          EXPECTED="$(awk '{print $1}' "$TMP_DIR/CleanRoute-pilot.apk.sha256")"
+          ACTUAL="$(sha256sum "$TMP_DIR/CleanRoute-pilot.apk" | awk '{print $1}')"
+          test "$EXPECTED" = "$ACTUAL"
+          cp "$TMP_DIR/CleanRoute-pilot.apk" source/site/dist/CleanRoute-pilot.apk
 
       - name: Checkout gh-pages
         uses: actions/checkout@v7
