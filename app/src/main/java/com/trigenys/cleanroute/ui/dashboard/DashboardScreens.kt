@@ -2,26 +2,47 @@ package com.trigenys.cleanroute.ui.dashboard
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.domain.ArrearsEntry
@@ -40,7 +61,6 @@ import com.trigenys.cleanroute.domain.PaymentMethods
 import com.trigenys.cleanroute.domain.ZoneId
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
 import com.trigenys.cleanroute.ui.components.CleanRoutePrimaryButton
-import com.trigenys.cleanroute.ui.components.KpiTile
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
@@ -66,18 +86,32 @@ fun OwnerDashboardScreen(
             .fillMaxSize()
             .padding(innerPadding),
         contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 24.dp,
-            bottom = 32.dp
+            start = 16.dp,
+            end = 16.dp,
+            top = 18.dp,
+            bottom = 28.dp
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Bonjour 👋", style = MaterialTheme.typography.headlineLarge)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Bonjour",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "👋",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
                 Text(
-                    "Votre activité aujourd’hui",
+                    text = "Votre activité aujourd’hui",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -108,24 +142,10 @@ fun OwnerDashboardScreen(
         }
 
         val current = snapshot
+
         if (!loading && current != null && current.activeClients.isEmpty()) {
             item {
-                CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "Commencez par vos clients",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        "Ajoutez un client ou importez votre fichier Excel pour alimenter les tournées et les paiements.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Button(
-                        onClick = onOpenClients,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Ajouter un client")
-                    }
-                }
+                FirstClientCard(onOpenClients = onOpenClients)
             }
         }
 
@@ -139,86 +159,135 @@ fun OwnerDashboardScreen(
             }
 
             item {
-                Text(
-                    "Vue d’ensemble",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Vue d’ensemble",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "TEMPS RÉEL",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    KpiTile(
-                        label = "Clients actifs",
-                        value = current.activeClients.size.toString(),
-                        supportingText = "Voir la liste",
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onMetricSelected(DashboardMetric.ACTIVE_CLIENTS) }
-                    )
-                    KpiTile(
-                        label = "Encaissements",
-                        value = formatXaf(current.receiptsXaf),
-                        supportingText = "Aujourd’hui",
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onMetricSelected(DashboardMetric.RECEIPTS) }
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        DashboardKpiCard(
+                            label = "Clients actifs",
+                            value = current.activeClients.size.toString(),
+                            icon = Icons.Outlined.Groups,
+                            footer = "Voir la liste",
+                            footerIcon = Icons.Outlined.ArrowForward,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    onMetricSelected(DashboardMetric.ACTIVE_CLIENTS)
+                                }
+                        )
+
+                        DashboardKpiCard(
+                            label = "Encaissements",
+                            value = formatXaf(current.receiptsXaf),
+                            icon = Icons.Outlined.Payments,
+                            footer = "Aujourd’hui",
+                            footerIcon = Icons.Outlined.CalendarToday,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    onMetricSelected(DashboardMetric.RECEIPTS)
+                                }
+                        )
+                    }
                 }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    KpiTile(
-                        label = "Impayés",
-                        value = formatXaf(current.arrearsXaf),
-                        supportingText = current.servicePeriod.toString(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onMetricSelected(DashboardMetric.ARREARS) }
-                    )
-                    KpiTile(
-                        label = "Nouveaux clients",
-                        value = current.newClients.size.toString(),
-                        supportingText = "Aujourd’hui",
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onMetricSelected(DashboardMetric.NEW_CLIENTS) }
-                    )
-                }
-            }
-
-            item {
-                KpiTile(
-                    label = "Zones aujourd’hui",
-                    value = current.zones.size.toString(),
-                    supportingText = if (current.zones.isEmpty()) {
-                        "Aucune tournée démarrée"
-                    } else {
-                        "Voir les zones"
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onMetricSelected(DashboardMetric.ZONES) }
-                )
             }
 
             if (current.arrears.isNotEmpty()) {
                 item {
-                    Button(
-                        onClick = onOpenPayments,
-                        modifier = Modifier.fillMaxWidth()
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onOpenPayments),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f)
                     ) {
-                        Text("Voir les impayés")
+                        Row(
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "Impayés à traiter",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = formatXaf(current.arrearsXaf),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
                     }
                 }
             }
+
+            item {
+                LocalSyncCard()
+            }
         }
+    }
+}
+
+@Composable
+private fun FirstClientCard(
+    onOpenClients: () -> Unit
+) {
+    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            DashboardIconBox(
+                icon = Icons.Outlined.PersonAdd,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.62f),
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text(
+                    text = "Commencez par vos clients",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Ajoutez un client ou importez votre fichier Excel pour alimenter les tournées et les paiements.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        DashboardActionButton(
+            text = "Ajouter un client",
+            icon = Icons.Filled.Add,
+            onClick = onOpenClients,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -231,6 +300,8 @@ private fun CollectionKpiCard(
     val total = snapshot.collectionTotal
     val completed = snapshot.collectionCompleted
     val progress = if (total == 0) 0f else completed.toFloat() / total
+    val collectionDone = total > 0 && completed == total
+    val nextZone = snapshot.zones.firstOrNull()?.zoneName
 
     CleanRouteCard(
         modifier = Modifier
@@ -239,44 +310,281 @@ private fun CollectionKpiCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "Collecte du jour",
-                    style = MaterialTheme.typography.titleLarge
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocalShipping,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
                 )
                 Text(
-                    if (total == 0) {
+                    text = "Collecte du jour",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            StatusChip(
+                text = if (collectionDone) "Terminée" else "Hors connexion",
+                tone = if (collectionDone) StatusTone.SUCCESS else StatusTone.NEUTRAL
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            DashboardIconBox(
+                icon = Icons.Outlined.AltRoute,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = if (total == 0) {
                         "Aucune tournée démarrée"
                     } else {
                         "$completed / $total passages terminés"
                     },
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (total == 0) {
+                        if (nextZone == null) {
+                            "Prêt pour votre prochaine tournée"
+                        } else {
+                            "Prêt pour le circuit de $nextZone"
+                        }
+                    } else if (collectionDone) {
+                        "La tournée du jour est terminée"
+                    } else {
+                        "Continuez là où vous vous êtes arrêté"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            StatusChip(
-                text = if (total > 0 && completed == total) "Terminée" else "Hors connexion",
-                tone = if (total > 0 && completed == total) {
-                    StatusTone.SUCCESS
-                } else {
-                    StatusTone.NEUTRAL
-                }
-            )
         }
 
         if (total > 0) {
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
             )
         }
 
-        CleanRoutePrimaryButton(
+        DashboardActionButton(
             text = if (total == 0) "Commencer une tournée" else "Continuer la collecte",
+            icon = Icons.Filled.PlayArrow,
             onClick = onOpenCollection,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
+    }
+}
+
+@Composable
+private fun DashboardKpiCard(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    footer: String,
+    footerIcon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = value,
+                style = MaterialTheme.typography.displayLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Icon(
+                    imageVector = footerIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = footer,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (label == "Clients actifs") {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DashboardIconBox(
+    icon: ImageVector,
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color
+) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = containerColor
+    ) {
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DashboardActionButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    contentColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 56.dp),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 3.dp,
+            pressedElevation = 1.dp
+        )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun LocalSyncCard() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Sync,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Synchronisation locale active",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Données enregistrées en mémoire sécurisée",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .then(
+                        Modifier
+                    )
+            )
+            Surface(
+                modifier = Modifier.size(10.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary
+            ) {}
+        }
     }
 }
 
