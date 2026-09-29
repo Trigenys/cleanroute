@@ -2,6 +2,7 @@ package com.trigenys.cleanroute.ui.customer
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.compose.material3.Surface
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.trigenys.cleanroute.domain.CustomerDirectoryEntry
 import com.trigenys.cleanroute.domain.CustomerId
@@ -70,13 +71,15 @@ class CustomerVisualTest {
     fun newCustomerForm() {
         captureRoboImage {
             CleanRouteTheme {
-                CustomerFormContent(
-                    initialProfile = null,
-                    errorMessage = null,
-                    onDismiss = {},
-                    onSave = {},
-                    suggestedZones = listOf("Bonamoussadi", "Makepe", "Bonapriso")
-                )
+                Surface {
+                    CustomerFormContent(
+                        initialProfile = null,
+                        errorMessage = null,
+                        onDismiss = {},
+                        onSave = {},
+                        suggestedZones = listOf("Bonamoussadi", "Makepe", "Bonapriso")
+                    )
+                }
             }
         }
     }
