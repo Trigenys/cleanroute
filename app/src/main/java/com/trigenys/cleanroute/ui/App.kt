@@ -160,7 +160,13 @@ private fun CleanRouteShell(
                         innerPadding = innerPadding,
                         onQueryChange = {},
                         onAddCustomer = {},
-                        onCustomerSelected = {}
+                        onCustomerSelected = {},
+                        onImportCustomers = {
+                            onDestinationSelected(AppDestination.MORE)
+                        },
+                        onOpenCollection = {
+                            onDestinationSelected(AppDestination.COLLECTION)
+                        }
                     )
                 } else {
                     CustomerDirectoryRoute(
@@ -168,7 +174,13 @@ private fun CleanRouteShell(
                         paymentRepository = paymentRepository,
                         contactService = contactService,
                         retentionRepository = retentionRepository,
-                        innerPadding = innerPadding
+                        innerPadding = innerPadding,
+                        onOpenImport = {
+                            onDestinationSelected(AppDestination.MORE)
+                        },
+                        onOpenCollection = {
+                            onDestinationSelected(AppDestination.COLLECTION)
+                        }
                     )
                 }
             }
