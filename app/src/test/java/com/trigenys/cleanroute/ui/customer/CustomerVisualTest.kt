@@ -27,11 +27,7 @@ class CustomerVisualTest {
                     innerPadding = PaddingValues(),
                     onQueryChange = {},
                     onAddCustomer = {},
-                    onCustomerSelected = {},
-                    sectors = listOf("Bonamoussadi", "Makepe"),
-                    onSectorSelected = {},
-                    onImportCustomers = {},
-                    onOpenCollection = {}
+                    onCustomerSelected = {}
                 )
             }
         }
@@ -59,7 +55,12 @@ class CustomerVisualTest {
                     innerPadding = PaddingValues(),
                     onQueryChange = {},
                     onAddCustomer = {},
-                    onCustomerSelected = {}
+                    onCustomerSelected = {},
+                    totalCount = 2,
+                    sectors = listOf("Bonamoussadi", "Makepe"),
+                    onSectorSelected = {},
+                    onImportCustomers = {},
+                    onOpenCollection = {}
                 )
             }
         }
