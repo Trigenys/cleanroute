@@ -85,6 +85,26 @@ class CustomerVisualTest {
     }
 
     @Test
+    fun activeCustomerDetailTimeline() {
+        val profile = sampleCustomerProfile().copy(
+            paidThisPeriodXaf = 0,
+            outstandingThisPeriodXaf = 5_000
+        )
+        captureRoboImage {
+            CleanRouteTheme {
+                CustomerDetailScreen(
+                    profile = profile,
+                    innerPadding = PaddingValues(),
+                    onBack = {},
+                    onEdit = {},
+                    onRecordPayment = {},
+                    onReversePayment = {}
+                )
+            }
+        }
+    }
+
+    @Test
     fun suspendedCustomerDetail() {
         captureRoboImage {
             CleanRouteTheme {
