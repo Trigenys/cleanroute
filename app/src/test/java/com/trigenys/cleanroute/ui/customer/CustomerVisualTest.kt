@@ -27,7 +27,11 @@ class CustomerVisualTest {
                     innerPadding = PaddingValues(),
                     onQueryChange = {},
                     onAddCustomer = {},
-                    onCustomerSelected = {}
+                    onCustomerSelected = {},
+                    sectors = listOf("Bonamoussadi", "Makepe"),
+                    onSectorSelected = {},
+                    onImportCustomers = {},
+                    onOpenCollection = {}
                 )
             }
         }
@@ -56,6 +60,21 @@ class CustomerVisualTest {
                     onQueryChange = {},
                     onAddCustomer = {},
                     onCustomerSelected = {}
+                )
+            }
+        }
+    }
+
+    @Test
+    fun newCustomerForm() {
+        captureRoboImage {
+            CleanRouteTheme {
+                CustomerFormContent(
+                    initialProfile = null,
+                    errorMessage = null,
+                    onDismiss = {},
+                    onSave = {},
+                    suggestedZones = listOf("Bonamoussadi", "Makepe", "Bonapriso")
                 )
             }
         }
