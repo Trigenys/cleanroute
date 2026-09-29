@@ -1,5 +1,6 @@
 package com.trigenys.cleanroute.ui.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,6 +84,7 @@ fun OwnerDashboardScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(innerPadding),
         contentPadding = PaddingValues(
             start = 16.dp,
@@ -101,7 +103,8 @@ fun OwnerDashboardScreen(
                     Text(
                         text = "Bonjour",
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.ExtraBold
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "👋",
