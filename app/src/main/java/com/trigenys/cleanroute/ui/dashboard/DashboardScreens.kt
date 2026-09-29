@@ -60,7 +60,6 @@ import com.trigenys.cleanroute.domain.PaymentMethod
 import com.trigenys.cleanroute.domain.PaymentMethods
 import com.trigenys.cleanroute.domain.ZoneId
 import com.trigenys.cleanroute.ui.components.CleanRouteCard
-import com.trigenys.cleanroute.ui.components.CleanRoutePrimaryButton
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
@@ -567,18 +566,11 @@ private fun LocalSyncCard() {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Données enregistrées en mémoire sécurisée",
+                    text = "Données enregistrées localement sur cet appareil",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .then(
-                        Modifier
-                    )
-            )
             Surface(
                 modifier = Modifier.size(10.dp),
                 shape = CircleShape,
