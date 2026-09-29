@@ -28,7 +28,9 @@ import kotlinx.coroutines.launch
 fun CollectionWorkflowRoute(
     repository: CollectionWorkflowRepository,
     contactService: CustomerContactService,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    onOpenClients: () -> Unit = {},
+    onOpenExcel: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -39,6 +41,7 @@ fun CollectionWorkflowRoute(
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var expandedVisitId by rememberSaveable { mutableStateOf<String?>(null) }
+    var tourStarted by rememberSaveable { mutableStateOf(false) }
     var refreshVersion by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(refreshVersion) {
@@ -59,6 +62,8 @@ fun CollectionWorkflowRoute(
             loading = loading,
             errorMessage = errorMessage,
             innerPadding = innerPadding,
+            onOpenClients = onOpenClients,
+            onOpenExcel = onOpenExcel,
             onZoneSelected = { workload ->
                 scope.launch {
                     loading = true
@@ -67,11 +72,18 @@ fun CollectionWorkflowRoute(
                         repository.ensureRoute(today, workload.zoneId)
                     }.onSuccess { loadedRoute ->
                         route = loadedRoute
-                        expandedVisitId = loadedRoute.stops
-                            .firstOrNull { it.visit.status == CollectionVisitStatus.SCHEDULED }
-                            ?.visit
-                            ?.id
-                            ?.value
+                        tourStarted = loadedRoute.completedStops > 0
+                        expandedVisitId = if (tourStarted) {
+                            loadedRoute.stops
+                                .firstOrNull {
+                                    it.visit.status == CollectionVisitStatus.SCHEDULED
+                                }
+                                ?.visit
+                                ?.id
+                                ?.value
+                        } else {
+                            null
+                        }
                     }.onFailure {
                         errorMessage = it.message ?: "Impossible de démarrer la tournée."
                     }
@@ -90,7 +102,19 @@ fun CollectionWorkflowRoute(
             onBack = {
                 route = null
                 expandedVisitId = null
+                tourStarted = false
                 refreshVersion += 1
+            },
+            tourStarted = tourStarted,
+            onStartTour = {
+                tourStarted = true
+                expandedVisitId = currentRoute.stops
+                    .firstOrNull {
+                        it.visit.status == CollectionVisitStatus.SCHEDULED
+                    }
+                    ?.visit
+                    ?.id
+                    ?.value
             },
             onToggleActions = { visitId ->
                 expandedVisitId = if (expandedVisitId == visitId.value) {
