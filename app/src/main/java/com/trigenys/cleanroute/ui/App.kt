@@ -124,13 +124,25 @@ private fun CleanRouteShell(
                         loading = false,
                         errorMessage = null,
                         innerPadding = innerPadding,
-                        onZoneSelected = {}
+                        onZoneSelected = {},
+                        onOpenClients = {
+                            onDestinationSelected(AppDestination.CLIENTS)
+                        },
+                        onOpenExcel = {
+                            onDestinationSelected(AppDestination.MORE)
+                        }
                     )
                 } else {
                     CollectionWorkflowRoute(
                         repository = collectionWorkflowRepository,
                         contactService = contactService,
-                        innerPadding = innerPadding
+                        innerPadding = innerPadding,
+                        onOpenClients = {
+                            onDestinationSelected(AppDestination.CLIENTS)
+                        },
+                        onOpenExcel = {
+                            onDestinationSelected(AppDestination.MORE)
+                        }
                     )
                 }
             }
