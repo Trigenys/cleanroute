@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -32,6 +33,9 @@ import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Phone
@@ -546,139 +550,85 @@ fun CustomerDetailScreen(
     onAttributeReferrer: () -> Unit = {},
     onAwardReferral: (ReferralId) -> Unit = {}
 ) {
+    val timelineEntries = customerTimelineEntries(profile)
+    val latestRecordedPayment = profile.recentPayments
+        .filter { it.state == PaymentState.RECORDED }
+        .maxByOrNull { it.recordedAt }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(innerPadding),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 12.dp,
+            bottom = 28.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
+            CustomerContextHeader(
+                profile = profile,
+                onBack = onBack,
+                onEdit = onEdit
+            )
+        }
+
+        item {
+            CustomerIdentityCard(profile = profile)
+        }
+
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Retour")
-                }
-                Text(
-                    "Fiche client",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.headlineSmall
+                CustomerContactButton(
+                    label = "Appeler",
+                    detail = profile.customer.phone ?: "Aucun numéro",
+                    icon = Icons.Outlined.Phone,
+                    primary = true,
+                    enabled = profile.customer.phone != null,
+                    onClick = onCall,
+                    modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Outlined.Edit, contentDescription = "Modifier")
-                }
+                CustomerContactButton(
+                    label = "WhatsApp",
+                    detail = "Avis de passage",
+                    icon = Icons.Outlined.ChatBubbleOutline,
+                    primary = false,
+                    enabled = profile.customer.phone != null,
+                    onClick = onWhatsApp,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
 
-        item {
-            CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
+        contactFeedback?.let { feedback ->
+            item {
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.errorContainer
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(profile.customer.name, style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            profile.customer.phone ?: "Aucun numéro",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            buildString {
-                                append(profile.zone.name)
-                                profile.customer.addressLabel?.let { append(" · ").append(it) }
-                            },
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    StatusChip(
-                        text = if (profile.customer.status == CustomerStatus.ACTIVE) "Actif" else "Suspendu",
-                        tone = if (profile.customer.status == CustomerStatus.ACTIVE) {
-                            StatusTone.SUCCESS
-                        } else {
-                            StatusTone.WARNING
-                        }
-                    )
-                }
-
-                Text(
-                    profile.nextCollectionDate?.let { "Prochain passage : $it" }
-                        ?: "Prochain passage : non planifié",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ContactActionButton(
-                        label = "Appeler",
-                        icon = Icons.Outlined.Phone,
-                        enabled = profile.customer.phone != null,
-                        onClick = onCall,
-                        modifier = Modifier.weight(1f)
-                    )
-                    ContactActionButton(
-                        label = "WhatsApp",
-                        icon = Icons.Outlined.ChatBubbleOutline,
-                        enabled = profile.customer.phone != null,
-                        onClick = onWhatsApp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    PlaceholderAction(
-                        label = "Localiser",
-                        icon = Icons.Outlined.LocationOn,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                contactFeedback?.let {
                     Text(
-                        text = it,
+                        text = feedback,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
-
-                Text(
-                    "WhatsApp prépare le message : rien n’est envoyé sans votre action.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
 
         item {
-            CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Abonnement", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    formatXaf(profile.servicePlan.monthlyFeeXaf) + " / mois",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    "Payé ce mois : ${formatXaf(profile.paidThisPeriodXaf)}",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    if (profile.outstandingThisPeriodXaf == 0L) {
-                        "À payer : rien"
-                    } else {
-                        "À payer : ${formatXaf(profile.outstandingThisPeriodXaf)}"
-                    },
-                    color = if (profile.outstandingThisPeriodXaf == 0L) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.tertiary
-                    }
-                )
-
-                if (profile.outstandingThisPeriodXaf > 0L) {
-                    Button(
-                        onClick = onRecordPayment,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Enregistrer un paiement")
-                    }
-                }
-            }
+            CustomerSubscriptionCard(
+                profile = profile,
+                latestRecordedPayment = latestRecordedPayment,
+                onRecordPayment = onRecordPayment
+            )
         }
 
         retentionProfile?.let { retention ->
@@ -693,32 +643,73 @@ fun CustomerDetailScreen(
         }
 
         item {
-            Text("Historique récent", style = MaterialTheme.typography.titleMedium)
+            CustomerActivityCard(
+                entries = timelineEntries,
+                onReversePayment = onReversePayment
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomerContextHeader(
+    profile: CustomerProfile,
+    onBack: () -> Unit,
+    onEdit: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.Outlined.ArrowBack,
+                contentDescription = "Retour"
+            )
         }
 
-        if (profile.recentVisits.isEmpty() && profile.recentPayments.isEmpty()) {
-            item {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
-                    "Aucune activité enregistrée.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Fiche client",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-        } else {
-            items(profile.recentVisits, key = { "visit-${it.id.value}" }) { visit ->
-                ActivityRow(
-                    title = when (visit.status) {
-                        CollectionVisitStatus.COLLECTED -> "Collecte effectuée"
-                        CollectionVisitStatus.ABSENT -> "Client absent"
-                        CollectionVisitStatus.NO_WASTE -> "Pas de déchets"
-                        CollectionVisitStatus.SCHEDULED -> "Collecte planifiée"
+                StatusChip(
+                    text = if (profile.customer.status == CustomerStatus.ACTIVE) {
+                        "ACTIF"
+                    } else {
+                        "SUSPENDU"
                     },
-                    detail = visit.scheduledDate.toString()
+                    tone = if (profile.customer.status == CustomerStatus.ACTIVE) {
+                        StatusTone.SUCCESS
+                    } else {
+                        StatusTone.WARNING
+                    }
                 )
             }
-            items(profile.recentPayments, key = { "payment-${it.id.value}" }) { payment ->
-                PaymentActivityRow(
-                    payment = payment,
-                    onReverse = { onReversePayment(payment) }
+            Text(
+                text = "Profil enregistré localement",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = "Modifier le client"
                 )
             }
         }
@@ -726,96 +717,619 @@ fun CustomerDetailScreen(
 }
 
 @Composable
-private fun ContactActionButton(
+private fun CustomerIdentityCard(
+    profile: CustomerProfile
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Surface(
+                    modifier = Modifier.size(72.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = customerInitials(profile.customer.name),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        text = profile.customer.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = customerReference(profile.customer),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(top = 1.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = profile.zone.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = profile.customer.addressLabel ?: "Aucun repère renseigné",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarToday,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = profile.nextCollectionDate?.let {
+                            "Prochain passage · ${formatFrenchDate(it)}"
+                        } ?: "Prochain passage non planifié",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerContactButton(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    detail: String,
+    icon: ImageVector,
+    primary: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedButton(
+    Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier
-    ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(4.dp))
-        Text(label)
-    }
-}
-
-@Composable
-private fun PlaceholderAction(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    OutlinedButton(
-        onClick = {},
-        enabled = false,
-        modifier = modifier
-    ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(4.dp))
-        Text(label)
-    }
-}
-
-@Composable
-private fun ActivityRow(title: String, detail: String) {
-    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Text(
-            detail,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun PaymentActivityRow(
-    payment: Payment,
-    onReverse: () -> Unit
-) {
-    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "Paiement · ${formatXaf(payment.amountXaf)}",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    "${payment.servicePeriod} · ${PaymentMethods.labelFor(payment.method)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            StatusChip(
-                text = if (payment.state == PaymentState.RECORDED) "Enregistré" else "Annulé",
-                tone = if (payment.state == PaymentState.RECORDED) {
-                    StatusTone.SUCCESS
-                } else {
-                    StatusTone.NEUTRAL
-                }
-            )
-        }
-
-        if (payment.state == PaymentState.REVERSED) {
-            Text(
-                "Annulé le ${payment.reversedAt}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        modifier = modifier.heightIn(min = 62.dp),
+        shape = CircleShape,
+        colors = if (primary) {
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         } else {
-            TextButton(onClick = onReverse) {
-                Text("Annuler ce paiement")
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = if (primary) 2.dp else 0.dp),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(21.dp),
+            tint = if (primary) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
+        )
+        Spacer(Modifier.width(8.dp))
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (primary) {
+                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.86f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomerSubscriptionCard(
+    profile: CustomerProfile,
+    latestRecordedPayment: Payment?,
+    onRecordPayment: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
+                    Box(
+                        modifier = Modifier.size(46.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Payments,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "FORMULE ACTIVE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = profile.servicePlan.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = formatXaf(profile.servicePlan.monthlyFeeXaf),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "/ mois",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = if (profile.outstandingThisPeriodXaf == 0L) {
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.42f)
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerLow
+                }
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = if (profile.outstandingThisPeriodXaf == 0L) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.tertiary
+                        }
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (profile.outstandingThisPeriodXaf == 0L) {
+                                "Cotisation du mois réglée"
+                            } else {
+                                "Solde à encaisser · ${formatXaf(profile.outstandingThisPeriodXaf)}"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = latestRecordedPayment?.let {
+                                "Dernier paiement · ${PaymentMethods.labelFor(it.method)} · ${formatFrenchDate(instantDate(it.recordedAt))}"
+                            } ?: "Payé ce mois · ${formatXaf(profile.paidThisPeriodXaf)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (profile.outstandingThisPeriodXaf > 0L) {
+                Button(
+                    onClick = onRecordPayment,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 54.dp),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Payments,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Encaisser un paiement",
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun CustomerActivityCard(
+    entries: List<CustomerTimelineEntry>,
+    onReversePayment: (Payment) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
+                    Box(
+                        modifier = Modifier.size(46.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.History,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "Historique récent",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = "LOCAL",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+
+            if (entries.isEmpty()) {
+                Text(
+                    text = "Aucune activité enregistrée.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                entries.forEachIndexed { index, entry ->
+                    CustomerTimelineRow(
+                        entry = entry,
+                        showConnector = index < entries.lastIndex,
+                        onReversePayment = onReversePayment
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerTimelineRow(
+    entry: CustomerTimelineEntry,
+    showConnector: Boolean,
+    onReversePayment: (Payment) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                modifier = Modifier.size(36.dp),
+                shape = CircleShape,
+                color = when (entry) {
+                    is CustomerTimelineEntry.VisitEntry ->
+                        if (entry.visit.status == CollectionVisitStatus.COLLECTED) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    is CustomerTimelineEntry.PaymentEntry ->
+                        MaterialTheme.colorScheme.tertiaryContainer
+                }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = when (entry) {
+                            is CustomerTimelineEntry.VisitEntry -> Icons.Outlined.LocalShipping
+                            is CustomerTimelineEntry.PaymentEntry -> Icons.Outlined.Payments
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = when (entry) {
+                            is CustomerTimelineEntry.VisitEntry ->
+                                if (entry.visit.status == CollectionVisitStatus.COLLECTED) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            is CustomerTimelineEntry.PaymentEntry ->
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                        }
+                    )
+                }
+            }
+            if (showConnector) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(54.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                )
+            }
+        }
+
+        Surface(
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            when (entry) {
+                is CustomerTimelineEntry.VisitEntry -> {
+                    Column(
+                        modifier = Modifier.padding(13.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = formatFrenchDate(entry.visit.scheduledDate),
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                            StatusChip(
+                                text = visitStatusLabel(entry.visit.status),
+                                tone = visitStatusTone(entry.visit.status)
+                            )
+                        }
+                        Text(
+                            text = when (entry.visit.status) {
+                                CollectionVisitStatus.COLLECTED -> "Collecte enregistrée"
+                                CollectionVisitStatus.ABSENT -> "Client signalé absent"
+                                CollectionVisitStatus.NO_WASTE -> "Aucun déchet signalé"
+                                CollectionVisitStatus.SCHEDULED -> "Passage planifié"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                is CustomerTimelineEntry.PaymentEntry -> {
+                    Column(
+                        modifier = Modifier.padding(13.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Paiement · ${formatXaf(entry.payment.amountXaf)}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                                Text(
+                                    text = "${PaymentMethods.labelFor(entry.payment.method)} · ${formatFrenchDate(instantDate(entry.payment.recordedAt))}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            StatusChip(
+                                text = if (entry.payment.state == PaymentState.RECORDED) {
+                                    "Enregistré"
+                                } else {
+                                    "Annulé"
+                                },
+                                tone = if (entry.payment.state == PaymentState.RECORDED) {
+                                    StatusTone.SUCCESS
+                                } else {
+                                    StatusTone.NEUTRAL
+                                }
+                            )
+                        }
+
+                        if (entry.payment.state == PaymentState.RECORDED) {
+                            TextButton(
+                                onClick = { onReversePayment(entry.payment) }
+                            ) {
+                                Text("Annuler ce paiement")
+                            }
+                        } else {
+                            Text(
+                                text = entry.payment.reversedAt?.let {
+                                    "Annulé le ${formatFrenchDate(instantDate(it))}"
+                                } ?: "Paiement annulé",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private sealed interface CustomerTimelineEntry {
+    val sortKey: Instant
+
+    data class VisitEntry(
+        val visit: CollectionVisit,
+        override val sortKey: Instant
+    ) : CustomerTimelineEntry
+
+    data class PaymentEntry(
+        val payment: Payment,
+        override val sortKey: Instant
+    ) : CustomerTimelineEntry
+}
+
+private fun customerTimelineEntries(profile: CustomerProfile): List<CustomerTimelineEntry> {
+    val zone = java.time.ZoneId.systemDefault()
+    val visits = profile.recentVisits.map { visit ->
+        CustomerTimelineEntry.VisitEntry(
+            visit = visit,
+            sortKey = visit.statusChangedAt
+                ?: visit.scheduledDate.atStartOfDay(zone).toInstant()
+        )
+    }
+    val payments = profile.recentPayments.map { payment ->
+        CustomerTimelineEntry.PaymentEntry(
+            payment = payment,
+            sortKey = payment.reversedAt ?: payment.recordedAt
+        )
+    }
+    return (visits + payments).sortedByDescending { it.sortKey }
+}
+
+private fun visitStatusLabel(status: CollectionVisitStatus): String =
+    when (status) {
+        CollectionVisitStatus.SCHEDULED -> "Planifié"
+        CollectionVisitStatus.COLLECTED -> "Collecté"
+        CollectionVisitStatus.ABSENT -> "Absent"
+        CollectionVisitStatus.NO_WASTE -> "Pas de déchet"
+    }
+
+private fun visitStatusTone(status: CollectionVisitStatus): StatusTone =
+    when (status) {
+        CollectionVisitStatus.COLLECTED -> StatusTone.SUCCESS
+        CollectionVisitStatus.ABSENT,
+        CollectionVisitStatus.NO_WASTE -> StatusTone.WARNING
+        CollectionVisitStatus.SCHEDULED -> StatusTone.NEUTRAL
+    }
+
+private fun customerInitials(name: String): String =
+    name
+        .trim()
+        .split(Regex("\\s+"))
+        .filter { it.isNotBlank() }
+        .take(2)
+        .joinToString("") { it.first().uppercase() }
+        .ifBlank { "CL" }
+
+private fun customerReference(customer: Customer): String =
+    customer.externalId?.let { "#$it" }
+        ?: "#${customer.id.value.replace("-", "").takeLast(6).uppercase()}"
+
+private fun instantDate(instant: Instant): LocalDate =
+    instant.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+
+private fun formatFrenchDate(date: LocalDate): String {
+    val month = when (date.monthValue) {
+        1 -> "janv."
+        2 -> "févr."
+        3 -> "mars"
+        4 -> "avr."
+        5 -> "mai"
+        6 -> "juin"
+        7 -> "juil."
+        8 -> "août"
+        9 -> "sept."
+        10 -> "oct."
+        11 -> "nov."
+        else -> "déc."
+    }
+    return "${date.dayOfMonth} $month"
 }
 
 @Composable
