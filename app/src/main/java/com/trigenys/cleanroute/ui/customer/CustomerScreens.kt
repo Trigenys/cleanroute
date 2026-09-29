@@ -1,20 +1,35 @@
 package com.trigenys.cleanroute.ui.customer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CloudDone
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.HomeWork
+import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Edit
@@ -23,12 +38,16 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,9 +58,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.trigenys.cleanroute.domain.CollectionCadence
 import com.trigenys.cleanroute.domain.CollectionVisit
 import com.trigenys.cleanroute.domain.CollectionVisitId
@@ -83,32 +105,80 @@ fun CustomerDirectoryScreen(
     innerPadding: PaddingValues,
     onQueryChange: (String) -> Unit,
     onAddCustomer: () -> Unit,
-    onCustomerSelected: (CustomerDirectoryEntry) -> Unit
+    onCustomerSelected: (CustomerDirectoryEntry) -> Unit,
+    totalCount: Int = entries.size,
+    sectors: List<String> = emptyList(),
+    selectedSector: String? = null,
+    onSectorSelected: (String?) -> Unit = {},
+    onImportCustomers: () -> Unit = {},
+    onOpenCollection: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(innerPadding),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 18.dp,
+            bottom = 28.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Clients", style = MaterialTheme.typography.headlineLarge)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
-                        if (entries.size == 1) "1 client" else "${entries.size} clients",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Clients",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(9.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {}
+                        Text(
+                            text = if (totalCount == 1) {
+                                "1 CLIENT ENREGISTRÉ"
+                            } else {
+                                "$totalCount CLIENTS ENREGISTRÉS"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-                Button(onClick = onAddCustomer) {
-                    Icon(Icons.Outlined.Add, contentDescription = null)
+
+                Button(
+                    onClick = onAddCustomer,
+                    modifier = Modifier.heightIn(min = 56.dp),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PersonAdd,
+                        contentDescription = null,
+                        modifier = Modifier.size(21.dp)
+                    )
                     Spacer(Modifier.width(8.dp))
-                    Text("Ajouter")
+                    Text(
+                        text = "Ajouter",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -117,13 +187,57 @@ fun CustomerDirectoryScreen(
             OutlinedTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 64.dp),
                 singleLine = true,
                 leadingIcon = {
-                    Icon(Icons.Outlined.Search, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp)
+                    )
                 },
-                label = { Text("Nom, téléphone ou zone") }
+                placeholder = { Text("Nom, téléphone ou zone…") },
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainer,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
+        }
+
+        if (sectors.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedSector == null,
+                        onClick = { onSectorSelected(null) },
+                        label = { Text("Tous les secteurs") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.HomeWork,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+                    sectors.forEach { sector ->
+                        FilterChip(
+                            selected = selectedSector == sector,
+                            onClick = { onSectorSelected(sector) },
+                            label = { Text(sector) }
+                        )
+                    }
+                }
+            }
         }
 
         if (loading) {
@@ -139,26 +253,12 @@ fun CustomerDirectoryScreen(
             }
         } else if (entries.isEmpty()) {
             item {
-                CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        if (query.isBlank()) "Aucun client pour le moment"
-                        else "Aucun client trouvé",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        if (query.isBlank()) {
-                            "Ajoutez votre premier client. L’import Excel arrivera ensuite."
-                        } else {
-                            "Essayez un autre nom, numéro ou quartier."
-                        },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (query.isBlank()) {
-                        Button(onClick = onAddCustomer) {
-                            Text("Ajouter un client")
-                        }
-                    }
-                }
+                CustomerEmptyState(
+                    query = query,
+                    selectedSector = selectedSector,
+                    onAddCustomer = onAddCustomer,
+                    onImportCustomers = onImportCustomers
+                )
             }
         } else {
             items(
@@ -171,6 +271,201 @@ fun CustomerDirectoryScreen(
                 )
             }
         }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "OUTILS & PRISES RAPIDES",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CustomerQuickTool(
+                        icon = Icons.Outlined.UploadFile,
+                        title = "Modèle Excel",
+                        subtitle = "Importer ou exporter",
+                        onClick = onImportCustomers,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CustomerQuickTool(
+                        icon = Icons.Outlined.LocalShipping,
+                        title = "Zones",
+                        subtitle = "Ouvrir les tournées",
+                        onClick = onOpenCollection,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.48f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CloudDone,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Base locale active : vos clients restent disponibles hors connexion sur cet appareil.",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerEmptyState(
+    query: String,
+    selectedSector: String?,
+    onAddCustomer: () -> Unit,
+    onImportCustomers: () -> Unit
+) {
+    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Box(
+                    modifier = Modifier.size(92.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Groups,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = if (query.isBlank() && selectedSector == null) {
+                    "Aucun client pour le moment"
+                } else {
+                    "Aucun client trouvé"
+                },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = if (query.isBlank() && selectedSector == null) {
+                    "Démarrez votre activité en créant un premier profil ou en important votre registre Excel."
+                } else {
+                    "Modifiez la recherche ou choisissez un autre secteur."
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (query.isBlank() && selectedSector == null) {
+                Button(
+                    onClick = onAddCustomer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PersonAdd,
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Ajouter un client",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Button(
+                    onClick = onImportCustomers,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 54.dp),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.UploadFile,
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Importer un fichier Excel")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerQuickTool(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Box(
+                    modifier = Modifier.size(44.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -179,29 +474,49 @@ private fun CustomerRow(
     entry: CustomerDirectoryEntry,
     onClick: () -> Unit
 ) {
-    CleanRouteCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(entry.customer.name, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    entry.zoneName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                entry.customer.phone?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            Surface(
+                modifier = Modifier.size(46.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Groups,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = entry.customer.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = buildString {
+                        append(entry.zoneName)
+                        entry.customer.phone?.let { append(" · ").append(it) }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             StatusChip(
                 text = if (entry.customer.status == CustomerStatus.ACTIVE) "Actif" else "Suspendu",
@@ -508,7 +823,34 @@ fun CustomerFormDialog(
     initialProfile: CustomerProfile?,
     errorMessage: String?,
     onDismiss: () -> Unit,
-    onSave: (CustomerDraft) -> Unit
+    onSave: (CustomerDraft) -> Unit,
+    suggestedZones: List<String> = emptyList()
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            shadowElevation = 8.dp
+        ) {
+            CustomerFormContent(
+                initialProfile = initialProfile,
+                errorMessage = errorMessage,
+                onDismiss = onDismiss,
+                onSave = onSave,
+                suggestedZones = suggestedZones
+            )
+        }
+    }
+}
+
+@Composable
+internal fun CustomerFormContent(
+    initialProfile: CustomerProfile?,
+    errorMessage: String?,
+    onDismiss: () -> Unit,
+    onSave: (CustomerDraft) -> Unit,
+    suggestedZones: List<String> = emptyList()
 ) {
     var name by remember(initialProfile) {
         mutableStateOf(initialProfile?.customer?.name.orEmpty())
@@ -534,108 +876,324 @@ fun CustomerFormDialog(
     val feeValue = monthlyFee.toLongOrNull()
     val valid = name.isNotBlank() && zone.isNotBlank() && feeValue != null && feeValue >= 0
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(if (initialProfile == null) "Nouveau client" else "Modifier le client")
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nom *") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+    LazyColumn(
+        modifier = Modifier.heightIn(max = 720.dp),
+        contentPadding = PaddingValues(22.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Box(
+                        modifier = Modifier.size(52.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PersonAdd,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = if (initialProfile == null) "Nouveau client" else "Modifier le client",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "Enregistrement local du point de collecte",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                StatusChip(
+                    text = "LOCAL DB",
+                    tone = StatusTone.SUCCESS
                 )
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Téléphone") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
+            }
+        }
+
+        item {
+            CustomerFormField(
+                label = "Nom et prénom *",
+                value = name,
+                onValueChange = { name = it },
+                placeholder = "Ex. Amina T.",
+                leadingIcon = Icons.Outlined.Groups
+            )
+        }
+
+        item {
+            CustomerFormField(
+                label = "Numéro de téléphone",
+                value = phone,
+                onValueChange = { phone = it },
+                placeholder = "+237 6XX XX XX XX",
+                leadingIcon = Icons.Outlined.Phone,
+                keyboardType = KeyboardType.Phone
+            )
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                CustomerFormField(
+                    label = "Zone / quartier *",
                     value = zone,
                     onValueChange = { zone = it },
-                    label = { Text("Zone / quartier *") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = "Ex. Bonamoussadi",
+                    leadingIcon = Icons.Outlined.HomeWork
                 )
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text("Repère") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                if (suggestedZones.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        suggestedZones.take(6).forEach { suggestion ->
+                            FilterChip(
+                                selected = zone.equals(suggestion, ignoreCase = true),
+                                onClick = { zone = suggestion },
+                                label = { Text(suggestion) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            CustomerFormField(
+                label = "Repère visuel",
+                value = address,
+                onValueChange = { address = it },
+                placeholder = "Ex. portail vert, face boulangerie",
+                leadingIcon = Icons.Outlined.LocationOn
+            )
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Abonnement mensuel *",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    feeValue?.let {
+                        Text(
+                            text = formatXaf(it) + " / mois",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+
                 OutlinedTextField(
                     value = monthlyFee,
                     onValueChange = { monthlyFee = it.filter(Char::isDigit) },
-                    label = { Text("Abonnement mensuel (F) *") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = { Text("Montant en FCFA") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainer,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
-                if (initialProfile != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(2500L, 4000L, 6500L).forEach { amount ->
+                        FilterChip(
+                            selected = feeValue == amount,
+                            onClick = { monthlyFee = amount.toString() },
+                            label = { Text(formatXaf(amount)) }
+                        )
+                    }
+                }
+            }
+        }
+
+        if (initialProfile != null) {
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            if (active) "Client actif" else "Client suspendu",
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (active) "Client actif" else "Client suspendu",
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Le statut existant est conservé tant que vous ne le changez pas.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         Switch(
                             checked = active,
                             onCheckedChange = { active = it }
                         )
                     }
                 }
+            }
+        }
 
-                errorMessage?.let {
+        errorMessage?.let { message ->
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
                     Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
+                        text = message,
+                        modifier = Modifier.padding(14.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-
-                Text(
-                    "* Champs obligatoires",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onSave(
-                        CustomerDraft(
-                            customerId = initialProfile?.customer?.id,
-                            name = name,
-                            phone = phone.trim().takeIf(String::isNotEmpty),
-                            zoneName = zone,
-                            addressLabel = address.trim().takeIf(String::isNotEmpty),
-                            monthlyFeeXaf = requireNotNull(feeValue),
-                            status = if (active) CustomerStatus.ACTIVE else CustomerStatus.SUSPENDED
-                        )
-                    )
-                },
-                enabled = valid
-            ) {
-                Text("Enregistrer")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Annuler")
             }
         }
-    )
+
+        item {
+            Text(
+                text = "* Nom, zone et abonnement mensuel sont obligatoires.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .weight(0.8f)
+                        .heightIn(min = 56.dp),
+                    shape = CircleShape
+                ) {
+                    Text(
+                        text = "Annuler",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Button(
+                    onClick = {
+                        onSave(
+                            CustomerDraft(
+                                customerId = initialProfile?.customer?.id,
+                                name = name,
+                                phone = phone.trim().takeIf(String::isNotEmpty),
+                                zoneName = zone,
+                                addressLabel = address.trim().takeIf(String::isNotEmpty),
+                                monthlyFeeXaf = requireNotNull(feeValue),
+                                status = if (active) {
+                                    CustomerStatus.ACTIVE
+                                } else {
+                                    CustomerStatus.SUSPENDED
+                                }
+                            )
+                        )
+                    },
+                    enabled = valid,
+                    modifier = Modifier
+                        .weight(1.7f)
+                        .heightIn(min = 56.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = if (initialProfile == null) {
+                            "Enregistrer le client"
+                        } else {
+                            "Enregistrer"
+                        },
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerFormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    leadingIcon: ImageVector,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 62.dp),
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null
+                )
+            },
+            placeholder = { Text(placeholder) },
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            shape = RoundedCornerShape(18.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
+        )
+    }
 }
 
 private fun formatXaf(amount: Long): String =
