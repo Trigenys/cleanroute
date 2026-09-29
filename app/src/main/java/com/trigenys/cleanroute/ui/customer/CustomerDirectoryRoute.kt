@@ -48,11 +48,16 @@ fun CustomerDirectoryRoute(
     paymentRepository: PaymentRepository,
     contactService: CustomerContactService,
     retentionRepository: RetentionRepository?,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    onOpenImport: () -> Unit = {},
+    onOpenCollection: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    var selectedSector by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedCustomerId by rememberSaveable { mutableStateOf<String?>(null) }
     var entries by remember { mutableStateOf(emptyList<CustomerDirectoryEntry>()) }
+    var sectors by remember { mutableStateOf(emptyList<String>()) }
+    var totalCount by remember { mutableIntStateOf(0) }
     var profile by remember { mutableStateOf<CustomerProfile?>(null) }
     var loading by remember { mutableStateOf(true) }
     var profileLoading by remember { mutableStateOf(false) }
@@ -70,9 +75,24 @@ fun CustomerDirectoryRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(query, refreshVersion) {
+    LaunchedEffect(refreshVersion) {
+        val allEntries = repository.search("")
+        totalCount = allEntries.size
+        sectors = allEntries
+            .map { it.zoneName }
+            .distinct()
+            .sortedBy { it.lowercase() }
+        if (selectedSector != null && selectedSector !in sectors) {
+            selectedSector = null
+        }
+    }
+
+    LaunchedEffect(query, selectedSector, refreshVersion) {
         loading = true
-        entries = repository.search(query)
+        val searchResults = repository.search(query)
+        entries = selectedSector?.let { sector ->
+            searchResults.filter { it.zoneName.equals(sector, ignoreCase = true) }
+        } ?: searchResults
         loading = false
     }
 
@@ -231,7 +251,13 @@ fun CustomerDirectoryRoute(
                 saveError = null
                 showEditor = true
             },
-            onCustomerSelected = { selectedCustomerId = it.customer.id.value }
+            onCustomerSelected = { selectedCustomerId = it.customer.id.value },
+            totalCount = totalCount,
+            sectors = sectors,
+            selectedSector = selectedSector,
+            onSectorSelected = { selectedSector = it },
+            onImportCustomers = onOpenImport,
+            onOpenCollection = onOpenCollection
         )
     }
 
@@ -325,6 +351,7 @@ fun CustomerDirectoryRoute(
         CustomerFormDialog(
             initialProfile = editorProfile,
             errorMessage = saveError,
+            suggestedZones = sectors,
             onDismiss = {
                 showEditor = false
                 saveError = null
