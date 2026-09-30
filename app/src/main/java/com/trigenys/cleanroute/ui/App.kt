@@ -40,6 +40,7 @@ import com.trigenys.cleanroute.ui.customer.CustomerDirectoryRoute
 import com.trigenys.cleanroute.ui.dashboard.DashboardRoute
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.more.MoreRoute
+import com.trigenys.cleanroute.ui.more.MoreSection
 import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
 import com.trigenys.cleanroute.ui.navigation.CleanRouteTopBar
@@ -58,10 +59,18 @@ fun App(
     var selectedDestination by rememberSaveable {
         mutableStateOf(AppDestination.HOME)
     }
+    var moreSectionName by rememberSaveable {
+        mutableStateOf(MoreSection.PAYMENTS.name)
+    }
 
     CleanRouteShell(
         selectedDestination = selectedDestination,
         onDestinationSelected = { selectedDestination = it },
+        moreSection = MoreSection.valueOf(moreSectionName),
+        onOpenMoreSection = { section ->
+            moreSectionName = section.name
+            selectedDestination = AppDestination.MORE
+        },
         customerRepository = customerRepository,
         collectionWorkflowRepository = collectionWorkflowRepository,
         contactService = contactService,
@@ -76,6 +85,8 @@ fun App(
 private fun CleanRouteShell(
     selectedDestination: AppDestination,
     onDestinationSelected: (AppDestination) -> Unit,
+    moreSection: MoreSection,
+    onOpenMoreSection: (MoreSection) -> Unit,
     customerRepository: CustomerRepository?,
     collectionWorkflowRepository: CollectionWorkflowRepository?,
     contactService: CustomerContactService?,
@@ -88,7 +99,7 @@ private fun CleanRouteShell(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CleanRouteTopBar(
-                onProfileClick = { onDestinationSelected(AppDestination.MORE) }
+                onProfileClick = { onOpenMoreSection(MoreSection.PAYMENTS) }
             )
         },
         bottomBar = {
@@ -112,7 +123,7 @@ private fun CleanRouteShell(
                         innerPadding = innerPadding,
                         onOpenCollection = { onDestinationSelected(AppDestination.COLLECTION) },
                         onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) },
-                        onOpenPayments = { onDestinationSelected(AppDestination.MORE) }
+                        onOpenPayments = { onOpenMoreSection(MoreSection.PAYMENTS) }
                     )
                 }
             }
@@ -129,7 +140,7 @@ private fun CleanRouteShell(
                             onDestinationSelected(AppDestination.CLIENTS)
                         },
                         onOpenExcel = {
-                            onDestinationSelected(AppDestination.MORE)
+                            onOpenMoreSection(MoreSection.EXCEL)
                         }
                     )
                 } else {
@@ -141,7 +152,7 @@ private fun CleanRouteShell(
                             onDestinationSelected(AppDestination.CLIENTS)
                         },
                         onOpenExcel = {
-                            onDestinationSelected(AppDestination.MORE)
+                            onOpenMoreSection(MoreSection.EXCEL)
                         }
                     )
                 }
@@ -162,7 +173,7 @@ private fun CleanRouteShell(
                         onAddCustomer = {},
                         onCustomerSelected = {},
                         onImportCustomers = {
-                            onDestinationSelected(AppDestination.MORE)
+                            onOpenMoreSection(MoreSection.EXCEL)
                         },
                         onOpenCollection = {
                             onDestinationSelected(AppDestination.COLLECTION)
@@ -176,7 +187,7 @@ private fun CleanRouteShell(
                         retentionRepository = retentionRepository,
                         innerPadding = innerPadding,
                         onOpenImport = {
-                            onDestinationSelected(AppDestination.MORE)
+                            onOpenMoreSection(MoreSection.EXCEL)
                         },
                         onOpenCollection = {
                             onDestinationSelected(AppDestination.COLLECTION)
@@ -190,7 +201,8 @@ private fun CleanRouteShell(
                     paymentRepository = paymentRepository,
                     contactService = contactService,
                     spreadsheetService = spreadsheetService,
-                    innerPadding = innerPadding
+                    innerPadding = innerPadding,
+                    initialSection = moreSection
                 )
             }
         }

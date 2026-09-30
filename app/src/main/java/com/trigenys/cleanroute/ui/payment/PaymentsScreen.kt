@@ -1,35 +1,50 @@
 package com.trigenys.cleanroute.ui.payment
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.domain.ArrearsEntry
 import com.trigenys.cleanroute.domain.CustomerId
-import com.trigenys.cleanroute.ui.components.CleanRouteCard
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
@@ -54,64 +69,161 @@ fun PaymentsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(innerPadding),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 16.dp,
+            bottom = 28.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Paiements & impayés", style = MaterialTheme.typography.headlineLarge)
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text(
-                    "Les paiements sont enregistrés hors connexion.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Paiements & impayés",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                IconButton(onClick = onPreviousPeriod) {
-                    Icon(Icons.Outlined.ChevronLeft, contentDescription = "Mois précédent")
-                }
-                Text(
-                    text = period.toString(),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                IconButton(onClick = onNextPeriod) {
-                    Icon(Icons.Outlined.ChevronRight, contentDescription = "Mois suivant")
-                }
-            }
-        }
-
-        item {
-            CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CloudOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Les paiements sont enregistrés hors connexion sur cet appareil.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shadowElevation = 1.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Reste à encaisser",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    IconButton(onClick = onPreviousPeriod) {
+                        Icon(Icons.Outlined.ChevronLeft, contentDescription = "Mois précédent")
+                    }
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
+                        Spacer(Modifier.width(8.dp))
                         Text(
-                            formatXaf(totalOutstanding),
-                            style = MaterialTheme.typography.headlineSmall
+                            text = formatPeriod(period),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold
                         )
                     }
-                    StatusChip(
-                        text = if (entries.isEmpty()) "À jour" else "${entries.size} impayés",
-                        tone = if (entries.isEmpty()) {
-                            StatusTone.SUCCESS
-                        } else {
-                            StatusTone.WARNING
+                    IconButton(onClick = onNextPeriod) {
+                        Icon(Icons.Outlined.ChevronRight, contentDescription = "Mois suivant")
+                    }
+                }
+            }
+        }
+
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shadowElevation = 1.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "RESTE À ENCAISSER",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        StatusChip(
+                            text = if (entries.isEmpty()) "Tout est à jour" else "${entries.size} impayé${if (entries.size > 1) "s" else ""}",
+                            tone = if (entries.isEmpty()) StatusTone.SUCCESS else StatusTone.WARNING
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = formatXaf(totalOutstanding),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = if (totalOutstanding == 0L) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "restant",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Payments,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (entries.isEmpty()) "Aucun solde en attente" else "Soldes à traiter",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = if (entries.isEmpty()) {
+                                        "Aucun montant restant trouvé pour cette période."
+                                    } else {
+                                        "${entries.size} client${if (entries.size > 1) "s" else ""} avec un solde restant."
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                    )
+                    }
                 }
             }
         }
@@ -120,21 +232,28 @@ fun PaymentsScreen(
             OutlinedTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 60.dp),
                 singleLine = true,
                 leadingIcon = {
-                    Icon(Icons.Outlined.Search, contentDescription = null)
+                    Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(24.dp))
                 },
-                label = { Text("Nom, téléphone ou zone") }
+                placeholder = { Text("Rechercher par nom, téléphone ou zone…") },
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
 
         if (loading) {
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator()
@@ -144,42 +263,113 @@ fun PaymentsScreen(
 
         errorMessage?.let { error ->
             item {
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(14.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
 
         if (!loading && entries.isEmpty()) {
-            item {
-                CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        if (query.isBlank()) "Tout le monde est à jour 🎉"
-                        else "Aucun impayé trouvé",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        if (query.isBlank()) {
-                            "Aucun montant restant pour cette période."
-                        } else {
-                            "Essayez un autre nom, téléphone ou quartier."
-                        },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            item { PaymentsEmptyState(query = query) }
         } else {
-            items(
-                items = entries,
-                key = { it.customerId.value }
-            ) { entry ->
+            items(items = entries, key = { it.customerId.value }) { entry ->
                 ArrearsCard(
                     entry = entry,
                     onRecordPayment = { onRecordPayment(entry) },
                     onRemindPayment = { onRemindPayment(entry) }
                 )
             }
+        }
+
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(42.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Paiements disponibles hors connexion",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Les écritures restent dans la base locale de l’appareil même sans réseau.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaymentsEmptyState(query: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(74.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(38.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Text(
+                text = if (query.isBlank()) "Tout le monde est à jour 🎉" else "Aucun impayé trouvé",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Text(
+                text = if (query.isBlank()) {
+                    "Aucun retard de paiement identifié pour cette période."
+                } else {
+                    "Essayez un autre nom, téléphone ou quartier."
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -190,58 +380,88 @@ private fun ArrearsCard(
     onRecordPayment: () -> Unit,
     onRemindPayment: () -> Unit
 ) {
-    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    entry.customerName,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    entry.zoneName,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                entry.phone?.let {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
-                        it,
+                        text = entry.customerName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = buildString {
+                            append(entry.zoneName)
+                            entry.phone?.let { append(" · ").append(it) }
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                StatusChip(text = formatXaf(entry.outstandingXaf), tone = StatusTone.WARNING)
             }
-            StatusChip(
-                text = "À payer ${formatXaf(entry.outstandingXaf)}",
-                tone = StatusTone.WARNING
-            )
-        }
 
-        if (entry.paidXaf > 0) {
-            Text(
-                "Déjà payé : ${formatXaf(entry.paidXaf)} / ${formatXaf(entry.monthlyFeeXaf)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+            if (entry.paidXaf > 0) {
+                Text(
+                    text = "Déjà payé : ${formatXaf(entry.paidXaf)} sur ${formatXaf(entry.monthlyFeeXaf)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-        Button(
-            onClick = onRecordPayment,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Encaisser")
-        }
+            Button(
+                onClick = onRecordPayment,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                shape = CircleShape
+            ) {
+                Icon(Icons.Outlined.Payments, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(text = "Encaisser", fontWeight = FontWeight.ExtraBold)
+            }
 
-        OutlinedButton(
-            onClick = onRemindPayment,
-            enabled = entry.phone != null,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null)
-            Text(" Relancer sur WhatsApp")
+            OutlinedButton(
+                onClick = onRemindPayment,
+                enabled = entry.phone != null,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
+                shape = CircleShape,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ChatBubbleOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Relancer sur WhatsApp")
+            }
         }
     }
+}
+
+private fun formatPeriod(period: YearMonth): String {
+    val month = when (period.monthValue) {
+        1 -> "Janvier"
+        2 -> "Février"
+        3 -> "Mars"
+        4 -> "Avril"
+        5 -> "Mai"
+        6 -> "Juin"
+        7 -> "Juillet"
+        8 -> "Août"
+        9 -> "Septembre"
+        10 -> "Octobre"
+        11 -> "Novembre"
+        else -> "Décembre"
+    }
+    return "$month ${period.year}"
 }
 
 internal fun sampleArrearsEntries(): List<ArrearsEntry> = listOf(
