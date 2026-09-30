@@ -38,25 +38,29 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      - name: Record missing Collection empty golden
+      - name: Generate Collection empty candidate
         if: github.event_name == 'pull_request' && github.head_ref == 'test/ui-visual-gates-55'
-        run: gradle :app:recordRoborazziDebug
+        shell: bash
+        run: |
+          set +e
+          gradle :app:verifyRoborazziDebug
+          status=$?
+          set -e
+          actual="app/build/outputs/roborazzi/com.trigenys.cleanroute.ui.collection.CollectionVisualTest.zoneEmptySelection_actual.png"
+          golden="app/src/test/screenshots/com.trigenys.cleanroute.ui.collection.CollectionVisualTest.zoneEmptySelection.png"
+          test -f "$actual"
+          cp "$actual" "$golden"
+          echo "verify_status=$status" >> "$GITHUB_ENV"
 
       - name: Commit Collection empty golden
         if: github.event_name == 'pull_request' && github.head_ref == 'test/ui-visual-gates-55'
         shell: bash
         run: |
           set -euo pipefail
-          actual="app/build/outputs/roborazzi/com.trigenys.cleanroute.ui.collection.CollectionVisualTest.zoneEmptySelection_actual.png"
           golden="app/src/test/screenshots/com.trigenys.cleanroute.ui.collection.CollectionVisualTest.zoneEmptySelection.png"
-          test -f "$actual"
-          cp "$actual" "$golden"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$golden"
-          if git diff --cached --quiet; then
-            echo "Golden screenshots already match."
-            exit 0
-          fi
+          git diff --cached --quiet && { echo "No golden change produced."; exit 1; }
           git commit -m "test(ui): record Collection empty visual baseline (#55)"
           git push origin HEAD:${{ github.head_ref }}
