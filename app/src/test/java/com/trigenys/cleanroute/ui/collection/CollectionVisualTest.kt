@@ -16,6 +16,23 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w390dp-h844dp")
 class CollectionVisualTest {
     @Test
+    fun zoneEmptySelection() {
+        captureRoboImage {
+            CleanRouteTheme {
+                ZoneWorkloadScreen(
+                    workloads = emptyList(),
+                    loading = false,
+                    errorMessage = null,
+                    innerPadding = PaddingValues(),
+                    onZoneSelected = {},
+                    onOpenClients = {},
+                    onOpenExcel = {}
+                )
+            }
+        }
+    }
+
+    @Test
     fun zoneReadySelection() {
         captureRoboImage {
             CleanRouteTheme {
