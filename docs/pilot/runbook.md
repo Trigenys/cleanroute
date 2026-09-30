@@ -1,7 +1,7 @@
 # First field pilot runbook
 
 Issue: #17  
-Status: Ready to execute after #1/#6 data approval
+Status: **Ready to execute**
 
 ## Objective
 
@@ -23,13 +23,13 @@ The developer may onboard the operator before the timed work cycle, but should n
 
 Before starting:
 
-1. #1 real workflow/schema review is complete.
-2. #6 approved/anonymized workbook import has been validated.
-3. The pilot APK commit SHA and SHA-256 checksum are recorded.
-4. Android CI and Visual regression are green for that commit.
-5. The device has enough storage and a screen lock.
-6. The workbook/export destination is controlled by the business.
-7. No real customer data is committed to Git.
+1. Install the current `pilot-latest` build recorded in `2026-09-30-pilot-readiness.md`.
+2. Verify the APK SHA-256 before installation.
+3. Confirm Android CI, Pilot APK and visual-regression gates are green for the recorded build lineage.
+4. Choose the canonical synthetic reference data, or complete `data-approval-checklist.md` before using any external/real customer workbook.
+5. Ensure the device has enough storage and a screen lock.
+6. Keep workbook/export destinations under operator or business control.
+7. Never commit real customer data to Git.
 
 ## Onboarding
 
@@ -52,7 +52,7 @@ Do not demonstrate every edge case before the operator attempts the workflow.
 
 ### 1. Import
 
-- Select the approved/anonymized workbook.
+- Select the approved workbook or canonical pilot workbook.
 - Review create/update/unchanged/invalid preview.
 - If an error occurs, record the exact recovery action the operator tries.
 - Apply the import.
@@ -79,18 +79,18 @@ Expected:
 
 ### 3. Representative collection route
 
-Use one real representative zone/day.
+Use one representative zone/day.
 
 The operator should independently:
 
 - start/open the route;
 - mark at least one Collecté;
-- mark at least one Absent if the real day presents one;
-- mark Pas de déchets if the real day presents one;
-- correct one outcome only if a real mistaken tap occurs or as an explicitly announced resilience check;
+- mark at least one Absent if the session presents one;
+- mark Pas de déchets if the session presents one;
+- correct one outcome only if a mistaken tap occurs or as an explicitly announced resilience check;
 - open call/WhatsApp if operationally needed.
 
-Do not manufacture real-business outcomes. If a status is absent from the day, record it as not observed.
+Do not manufacture business outcomes. If a status is absent from the session, record it as not observed.
 
 ### 4. Offline recovery
 
@@ -110,7 +110,7 @@ Expected:
 
 ### 5. Payments
 
-Record only genuine pilot-approved payment examples.
+Record only pilot-approved payment examples.
 
 Cover where naturally available:
 

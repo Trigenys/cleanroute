@@ -2,7 +2,9 @@
 
 Issue links: #1, #6, #17
 
-Use this checklist before any real workbook is used in the pilot.
+Use this checklist before any **external or real customer workbook** is used in the pilot.
+
+The canonical v1 pilot may instead use the synthetic reference dataset defined by `docs/product/pilot-workflow.md`. Issues #1 and #6 are already closed because the canonical schema and import → retry → export contract are implemented and covered independently of a legacy production workbook.
 
 ## Source approval
 
@@ -40,4 +42,4 @@ Use this checklist before any real workbook is used in the pilot.
 
 ## Exit
 
-#1 and #6 should remain open until this checklist is supported by actual workbook evidence.
+If an external/real workbook is used, all applicable checks above must be evidenced before the operator starts the measured field cycle. If the canonical synthetic pilot data is used, record that choice in the field report and this external-data gate is not required.
