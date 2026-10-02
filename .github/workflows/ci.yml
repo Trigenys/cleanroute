@@ -1,31 +1,59 @@
 name: Android CI
 
+# Change-scoped dispatcher (RAIDER): the AppFactory impact analysis maps changed
+# paths to gates using .github/appfactory-impact.json. Each heavy job runs only
+# when its gate is required. Manual dispatch runs every gate.
+
 on:
   push:
     branches: [main]
-    paths:
-      - "app/**"
-      - "gradle/**"
-      - "gradle.properties"
-      - "settings.gradle.kts"
-      - "build.gradle.kts"
-      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "app/**"
-      - "gradle/**"
-      - "gradle.properties"
-      - "settings.gradle.kts"
-      - "build.gradle.kts"
-      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TZ: UTC
+  APPFACTORY_REF: f1917b748b3298e1ebd74613463863c76b41c36d
+
 jobs:
+  impact:
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@f1917b748b3298e1ebd74613463863c76b41c36d
+    with:
+      appfactory_ref: f1917b748b3298e1ebd74613463863c76b41c36d
+      config_path: .github/appfactory-impact.json
+      mode: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'auto' }}
+
+  impact-policy:
+    needs: impact
+    if: ${{ contains(fromJSON(needs.impact.outputs.gates), 'impact-policy') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Checkout trusted AppFactory runtime
+        uses: actions/checkout@v7
+        with:
+          repository: EagleFox31/appfactory-project-automation
+          ref: ${{ env.APPFACTORY_REF }}
+          path: .appfactory-impact
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Verify CI routing cases
+        run: node scripts/ci/verify-impact-cases.mjs --engine .appfactory-impact/src/impact/engine.mjs
+
   verify:
+    needs: impact
+    if: ${{ contains(fromJSON(needs.impact.outputs.gates), 'android-ci') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -38,3 +66,55 @@ jobs:
           gradle-version: "9.6.0"
       - name: Lint, test and assemble debug
         run: gradle :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+
+  visual-regression:
+    needs: impact
+    if: >-
+      contains(fromJSON(needs.impact.outputs.gates), 'visual-regression') &&
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Detect golden baseline
+        id: baseline
+        shell: bash
+        run: |
+          if find app/src/test/screenshots -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify golden screenshots
+        if: steps.baseline.outputs.exists == 'true'
+        run: gradle :app:verifyRoborazziDebug
+
+      - name: Record bootstrap candidates
+        if: steps.baseline.outputs.exists != 'true'
+        run: gradle :app:recordRoborazziDebug
+
+      - name: Upload screenshot candidates
+        if: steps.baseline.outputs.exists != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: roborazzi-bootstrap-goldens
+          path: app/src/test/screenshots/
+          if-no-files-found: error
+
+      - name: Upload failed visual diff
+        if: failure() && steps.baseline.outputs.exists == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: roborazzi-visual-diff
+          if-no-files-found: warn
+          path: |
+            app/build/outputs/roborazzi/
+            app/src/test/screenshots/
