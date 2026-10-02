@@ -10,6 +10,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      visual_mode:
+        description: "verify goldens, or record candidates as an artifact for human parity review (never committed by CI)"
+        type: choice
+        options: [verify, record]
+        default: verify
 
 permissions:
   contents: read
@@ -86,8 +92,12 @@ jobs:
       - name: Detect golden baseline
         id: baseline
         shell: bash
+        env:
+          VISUAL_MODE: ${{ inputs.visual_mode }}
         run: |
-          if find app/src/test/screenshots -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
+          if [ "$VISUAL_MODE" = "record" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          elif find app/src/test/screenshots -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -97,7 +107,7 @@ jobs:
         if: steps.baseline.outputs.exists == 'true'
         run: gradle :app:verifyRoborazziDebug
 
-      - name: Record bootstrap candidates
+      - name: Record screenshot candidates
         if: steps.baseline.outputs.exists != 'true'
         run: gradle :app:recordRoborazziDebug
 
@@ -105,7 +115,7 @@ jobs:
         if: steps.baseline.outputs.exists != 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: roborazzi-bootstrap-goldens
+          name: roborazzi-candidate-goldens
           path: app/src/test/screenshots/
           if-no-files-found: error
 
