@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "documentation only is a no-op",
+      "files": ["docs/pilot/field-session-1.md", "README.md"],
+      "gates": []
+    },
+    {
+      "name": "project metadata is a no-op",
+      "files": [".github/project-config.json", ".github/workflows/project-automation.yml"],
+      "gates": []
+    },
+    {
+      "name": "domain code runs Android CI only",
+      "files": ["app/src/main/java/com/trigenys/cleanroute/domain/Customer.kt"],
+      "gates": ["android-ci", "pilot-apk"]
+    },
+    {
+      "name": "UI code adds visual regression",
+      "files": ["app/src/main/java/com/trigenys/cleanroute/ui/App.kt"],
+      "gates": ["android-ci", "visual-regression", "pilot-apk"]
+    },
+    {
+      "name": "any Android resource folder adds visual regression",
+      "files": ["app/src/main/res/drawable-nodpi/cleanroute_mark.png"],
+      "gates": ["android-ci", "visual-regression", "pilot-apk"]
+    },
+    {
+      "name": "golden screenshots run visual regression",
+      "files": ["app/src/test/screenshots/com.trigenys.cleanroute.ui.AppVisualTest.appHomeLight.png"],
+      "gates": ["android-ci", "visual-regression", "pilot-apk"]
+    },
+    {
+      "name": "shared build configuration fans out to every Android gate",
+      "files": ["gradle/libs.versions.toml"],
+      "gates": ["android-ci", "visual-regression", "pilot-apk"]
+    },
+    {
+      "name": "landing only wakes the landing surface",
+      "files": ["site/src/index.html"],
+      "gates": ["landing"]
+    },
+    {
+      "name": "pilot workflow change wakes the pilot surface only",
+      "files": [".github/workflows/pilot-apk.yml"],
+      "gates": ["pilot-apk"]
+    },
+    {
+      "name": "CI dispatcher change validates the policy and every Android gate",
+      "files": [".github/workflows/ci.yml"],
+      "gates": ["impact-policy", "android-ci", "visual-regression", "pilot-apk"]
+    },
+    {
+      "name": "unclassified file fails safe to every surface",
+      "files": [".gitignore"],
+      "gates": ["impact-policy", "android-ci", "visual-regression", "pilot-apk", "landing"],
+      "fallbackApplied": true
+    }
+  ]
+}

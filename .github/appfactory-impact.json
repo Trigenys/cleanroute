@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "fallback": "all",
+  "ignorePaths": [
+    "README.md",
+    "AGENTS.md",
+    "docs/**",
+    "brand/**",
+    "appfactory.json",
+    ".appfactory/**",
+    ".github/project-config.json",
+    ".github/pull_request_template.md",
+    ".github/workflows/project-automation.yml"
+  ],
+  "surfaces": {
+    "build-config": {
+      "paths": [
+        "gradle/**",
+        "gradle.properties",
+        "settings.gradle.kts",
+        "build.gradle.kts"
+      ],
+      "gates": []
+    },
+    "ci-pipeline": {
+      "paths": [
+        ".github/workflows/ci.yml",
+        ".github/appfactory-impact.json",
+        ".github/appfactory-impact.cases.json",
+        "scripts/ci/**"
+      ],
+      "gates": ["impact-policy"]
+    },
+    "android-app": {
+      "paths": ["app/**"],
+      "gates": ["android-ci"],
+      "dependsOn": ["build-config", "ci-pipeline"]
+    },
+    "android-ui": {
+      "paths": [
+        "app/src/main/java/com/trigenys/cleanroute/ui/**",
+        "app/src/main/res/**",
+        "app/src/test/java/com/trigenys/cleanroute/ui/**",
+        "app/src/test/screenshots/**",
+        "app/build.gradle.kts"
+      ],
+      "gates": ["visual-regression"],
+      "dependsOn": ["build-config", "ci-pipeline"]
+    },
+    "pilot-release": {
+      "paths": [".github/workflows/pilot-apk.yml"],
+      "gates": ["pilot-apk"],
+      "dependsOn": ["android-app"]
+    },
+    "landing": {
+      "paths": ["site/**", ".github/workflows/pages.yml"],
+      "gates": ["landing"]
+    }
+  }
+}
