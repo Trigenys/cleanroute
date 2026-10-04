@@ -1,40 +1,27 @@
-# GitHub Pages deployment — CleanRoute
+# GitHub Pages deployment — CleanRoute (legacy fallback)
 
-The CleanRoute landing page is built from `site/` by `.github/workflows/pages.yml`.
+GitHub Pages is the temporary rollback path while the CleanRoute landing is migrated to Cloudflare Pages.
 
-## Default URL
+## Legacy URL
 
 `https://trigenys.github.io/cleanroute/`
 
-## Custom domain target
+## Legacy custom-domain state
 
-`https://cleanroute.trigenys.com/`
-
-### GitHub
-
-Repository → **Settings** → **Pages**.
-
-1. Ensure Pages uses **GitHub Actions** as the publishing source.
-2. Under **Custom domain**, enter `cleanroute.trigenys.com`.
-3. Save the domain before publishing the DNS record.
-
-The connected GitHub integration used for normal repository writes does not expose repository Pages-administration settings, so this one-time setting is intentionally documented rather than hidden in CI.
-
-### DNS
-
-At the DNS provider for `trigenys.com`, create:
+The historical custom-domain target is `https://cleanroute.trigenys.com/`, with DNS:
 
 - Type: `CNAME`
 - Name/Host: `cleanroute`
 - Target/Value: `trigenys.github.io`
-- TTL: Auto/default
 
-If proxying is available, start DNS-only until GitHub validates the domain and provisions TLS.
+During the Cloudflare cutover, do not remove the `gh-pages` branch until the Cloudflare production deployment and HTTPS custom domain have both been verified.
 
-After GitHub reports the DNS check as successful, enable **Enforce HTTPS**.
+After cutover, the custom-domain CNAME moves to the Cloudflare Pages hostname returned by the dashboard. The GitHub Pages branch can then remain as a rollback artifact without owning `cleanroute.trigenys.com`.
 
-## Deployment workflow
+## Legacy deployment workflow
 
-Pull requests validate the static build. Pushes to `main` that change `site/**` or the Pages workflow build and deploy the site through GitHub Pages.
+`.github/workflows/pages.yml` builds `site/` and publishes the generated output to `gh-pages`. GitHub's Pages deployment then serves that branch.
 
 The generated `site/dist/` directory is ephemeral and must not be committed.
+
+For the active migration and production target, see [Cloudflare Pages deployment](cloudflare-pages.md).
