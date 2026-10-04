@@ -1,6 +1,6 @@
 # CleanRoute landing page
 
-Static product landing page for CleanRoute, deployed with GitHub Pages.
+Static product landing page for CleanRoute.
 
 ## Source
 
@@ -9,7 +9,7 @@ The page is kept in semantic HTML fragments under `site/src/` so the Stitch comp
 Build locally:
 
 ```bash
-python site/build.py
+python3 site/build.py
 ```
 
 The generated site is written to `site/dist/` and is not committed.
@@ -24,21 +24,15 @@ The landing must distinguish:
 
 Do not publish savings claims, encryption claims, automated messaging claims or routing/GPS claims unless they are backed by the product and representative evidence.
 
-## Public URLs
+## Hosting
 
-- GitHub Pages fallback: `https://trigenys.github.io/cleanroute/`
-- Custom domain target: `https://cleanroute.trigenys.com/`
+The production target is Cloudflare Pages:
 
-## Custom domain
+- production branch: `main`;
+- build command: `python3 site/build.py`;
+- build output directory: `site/dist`;
+- custom domain: `https://cleanroute.trigenys.com/`.
 
-For a GitHub Actions Pages deployment, configure the domain in **Repository Settings → Pages → Custom domain**.
+GitHub Pages remains a temporary rollback path during the migration.
 
-DNS for `trigenys.com`:
-
-```text
-Type:  CNAME
-Name:  cleanroute
-Value: trigenys.github.io
-```
-
-Set the GitHub custom domain before publishing the DNS CNAME. If the DNS provider supports proxying, start DNS-only until GitHub validates the domain and provisions HTTPS.
+See `docs/deployment/cloudflare-pages.md` for the cutover procedure and `docs/deployment/github-pages.md` for the legacy fallback.
