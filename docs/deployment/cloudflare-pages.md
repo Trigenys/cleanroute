@@ -7,12 +7,20 @@ CleanRoute's public landing is a static site built from `site/`. Cloudflare Page
 - Repository: `Trigenys/cleanroute`
 - Production branch: `main`
 - Root directory: repository root
-- Build command: `python3 site/build.py`
+- Build command: `python3 site/build_cloudflare.py`
 - Build output directory: `site/dist`
-- Environment variables: none required for the static build
+- Environment variables: none required
 - Production domain: `https://cleanroute.trigenys.com/`
 
 Cloudflare Pages creates a `*.pages.dev` hostname for the project. Use the exact hostname assigned by Cloudflare as the DNS target.
+
+## Why the Cloudflare build is separate
+
+`site/build.py` creates the static landing only.
+
+`site/build_cloudflare.py` then downloads the public `pilot-latest` APK and checksum from GitHub Releases, verifies SHA-256, and places both files in `site/dist/`. This preserves the existing public download contract without storing a Cloudflare API token or a large binary in Git.
+
+The current pilot APK is below Cloudflare Pages' 25 MiB per-file limit. If a future APK crosses that limit, move release binaries to GitHub Releases or object storage instead of forcing them into Pages.
 
 ## Cloudflare project setup
 
@@ -21,7 +29,7 @@ In **Cloudflare → Workers & Pages → Create → Pages → Connect to Git**:
 1. Connect the GitHub repository `Trigenys/cleanroute`.
 2. Set the production branch to `main`.
 3. Keep the repository root as the root directory.
-4. Set the build command to `python3 site/build.py`.
+4. Set the build command to `python3 site/build_cloudflare.py`.
 5. Set the build output directory to `site/dist`.
 6. Deploy and verify the generated `*.pages.dev` URL before touching production DNS.
 
@@ -57,20 +65,10 @@ The migration is complete only when all of these are true:
 - `https://cleanroute.trigenys.com/` returns the same landing;
 - the custom domain is Active in Cloudflare;
 - HTTPS is valid;
-- `/CleanRoute-pilot.apk` still returns the current pilot package after the release asset is included in the Pages build;
+- `/CleanRoute-pilot.apk` returns the current pilot package;
+- `/CleanRoute-pilot.apk.sha256` matches the deployed APK;
 - the QR code still points to the production custom domain;
 - `robots.txt`, `sitemap.xml`, favicon and Open Graph image resolve.
-
-## APK caveat
-
-The current GitHub Pages workflow injects `CleanRoute-pilot.apk` into `site/dist/` by downloading the `pilot-latest` GitHub Release asset. The plain `python3 site/build.py` build does not do that.
-
-Before DNS cutover, Cloudflare Pages therefore needs one of these two production-safe paths:
-
-1. make the landing download URL point directly to the verified GitHub Release asset; or
-2. add a build step that downloads and checksum-verifies the release artifact before Pages publishes `site/dist/`.
-
-Do not cut DNS to Cloudflare until this is resolved and the APK download proof passes.
 
 ## Rollback
 
