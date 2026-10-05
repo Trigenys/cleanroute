@@ -1,0 +1,9 @@
+{
+  "repository": "Trigenys/cleanroute",
+  "projectName": "cleanroute",
+  "productionBranch": "main",
+  "rootDirectory": "/",
+  "buildCommand": "python3 site/build_cloudflare.py",
+  "outputDirectory": "site/dist",
+  "customDomain": "cleanroute.trigenys.com"
+}
