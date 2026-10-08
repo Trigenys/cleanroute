@@ -86,3 +86,17 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 **Prevention rule:** routing rules are tested like code. `.github/appfactory-impact.cases.json` lists expected gates per change type (including a `drawable-nodpi` case) and the `impact-policy` gate replays them against the pinned AppFactory engine whenever the policy, the dispatcher or the verifier changes. New path-scoped gates must be expressed in the impact map with a case, not as a new copied `paths:` list.
 
 **Generalized lesson:** a trigger filter that silently matches nothing is a disabled test. Prefer fail-safe routing (unknown paths run everything) and assertions on the routing table over per-workflow path lists.
+
+## 2026-10-08 — Visual golden depended on the wall-clock month
+
+**What happened:** `MoreVisualTest.paymentsTab` passed until the month rolled over, then failed `visual-regression` on every PR: the golden showed "Septembre 2026" while the render showed "Octobre 2026".
+
+**Root cause:** the empty-ledger branch of `MoreRoute` called `YearMonth.now()` directly, so the captured pixels depended on the date the test ran. Other payment captures already pinned `YearMonth.of(2026, 9)`.
+
+**Why existing controls did not catch it:** the golden was recorded and verified within the same month; no check flags time-dependent rendering.
+
+**Fix:** `MoreRoute` takes `emptyLedgerPeriod` (default `YearMonth.now()`); the visual test pins September 2026.
+
+**Prevention rule:** any screen captured by Roborazzi receives its date/period as a parameter; tests never read the system clock.
+
+**Generalized lesson:** a golden that reads the clock is a test with an expiry date. Inject time at the boundary.
