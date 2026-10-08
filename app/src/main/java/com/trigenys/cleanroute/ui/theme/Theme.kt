@@ -9,10 +9,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.trigenys.cleanroute.R
 
 private val CleanRouteLightColors = lightColorScheme(
     primary = Color(0xFF006948),
@@ -82,85 +84,95 @@ private val CleanRouteDarkColors = darkColorScheme(
     inversePrimary = Color(0xFF006948)
 )
 
+// Stitch reference typeface, bundled (SIL OFL 1.1) so rendering never depends on the network
+// or on Google Play services. Licence: assets/licenses/PlusJakartaSans-OFL.txt.
+val PlusJakartaSans = FontFamily(
+    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
+    Font(R.font.plus_jakarta_sans_medium, FontWeight.Medium),
+    Font(R.font.plus_jakarta_sans_semi_bold, FontWeight.SemiBold),
+    Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold),
+    Font(R.font.plus_jakarta_sans_extra_bold, FontWeight.ExtraBold)
+)
+
 private val BaseTypography = Typography()
 
 private val CleanRouteTypography = Typography(
     displayLarge = BaseTypography.displayLarge.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 40.sp,
         lineHeight = 48.sp,
         fontWeight = FontWeight.ExtraBold,
         letterSpacing = (-0.8).sp
     ),
     headlineLarge = BaseTypography.headlineLarge.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 32.sp,
         lineHeight = 40.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = (-0.32).sp
     ),
     headlineMedium = BaseTypography.headlineMedium.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         fontWeight = FontWeight.Bold
     ),
     headlineSmall = BaseTypography.headlineSmall.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 20.sp,
         lineHeight = 28.sp,
         fontWeight = FontWeight.SemiBold
     ),
     titleLarge = BaseTypography.titleLarge.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 18.sp,
         lineHeight = 24.sp,
         fontWeight = FontWeight.SemiBold
     ),
     titleMedium = BaseTypography.titleMedium.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 16.sp,
         lineHeight = 22.sp,
         fontWeight = FontWeight.SemiBold
     ),
     titleSmall = BaseTypography.titleSmall.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold
     ),
     bodyLarge = BaseTypography.bodyLarge.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         fontWeight = FontWeight.Medium
     ),
     bodyMedium = BaseTypography.bodyMedium.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         fontWeight = FontWeight.Normal
     ),
     bodySmall = BaseTypography.bodySmall.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         fontWeight = FontWeight.Normal
     ),
     labelLarge = BaseTypography.labelLarge.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.14.sp
     ),
     labelMedium = BaseTypography.labelMedium.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.36.sp
     ),
     labelSmall = BaseTypography.labelSmall.copy(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = PlusJakartaSans,
         fontSize = 10.sp,
         lineHeight = 14.sp,
         fontWeight = FontWeight.ExtraBold,

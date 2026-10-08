@@ -89,6 +89,11 @@ data class PaymentDraft(
     }
 }
 
+data class PaymentPeriodSummary(
+    val activeClients: Int,
+    val collectedXaf: Long
+)
+
 data class ArrearsEntry(
     val customerId: CustomerId,
     val customerName: String,

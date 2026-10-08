@@ -173,7 +173,7 @@ fun OwnerDashboardScreen(
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "TEMPS RÉEL",
+                            text = "AUJOURD’HUI",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold
@@ -245,6 +245,57 @@ fun OwnerDashboardScreen(
                 }
             }
 
+            if (current.zones.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Zones du jour",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        current.zones.forEach { zone ->
+                            val done = zone.totalStops > 0 && zone.remainingStops == 0
+                            val started = zone.completedStops > 0
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.large,
+                                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                shadowElevation = 1.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = zone.zoneName,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = "${zone.completedStops}/${zone.totalStops} collectés" +
+                                                if (zone.remainingStops > 0) " · ${zone.remainingStops} restants" else "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    StatusChip(
+                                        text = when {
+                                            done -> "Terminé"
+                                            started -> "En cours"
+                                            else -> "À venir"
+                                        },
+                                        tone = if (done || started) StatusTone.SUCCESS else StatusTone.NEUTRAL
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 LocalSyncCard()
             }
@@ -273,12 +324,13 @@ private fun FirstClientCard(
             ) {
                 Text(
                     text = "Commencez par vos clients",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    softWrap = false
                 )
                 Text(
                     text = "Ajoutez un client ou importez votre fichier Excel pour alimenter les tournées et les paiements.",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -312,7 +364,8 @@ private fun CollectionKpiCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.weight(1f),
@@ -327,14 +380,63 @@ private fun CollectionKpiCard(
                 )
                 Text(
                     text = "Collecte du jour",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1
                 )
             }
+            val tourActive = total > 0 && !collectionDone
             StatusChip(
-                text = if (collectionDone) "Terminée" else "Hors connexion",
-                tone = if (collectionDone) StatusTone.SUCCESS else StatusTone.NEUTRAL
+                text = when {
+                    collectionDone -> "Terminée"
+                    tourActive -> "En cours"
+                    else -> "Hors connexion"
+                },
+                tone = if (collectionDone || tourActive) StatusTone.SUCCESS else StatusTone.NEUTRAL
             )
+        }
+
+        if (total > 0 && !collectionDone) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Étape ${completed + 1} sur $total",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = completed.toString(),
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "/$total ménages",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = (total - completed).toString(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "restants",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         Row(
@@ -351,30 +453,32 @@ private fun CollectionKpiCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
-                    text = if (total == 0) {
-                        "Aucune tournée démarrée"
-                    } else {
-                        "$completed / $total passages terminés"
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = if (total == 0) {
-                        if (nextZone == null) {
+                if (total == 0) {
+                    Text(
+                        text = "Aucune tournée démarrée",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = if (nextZone == null) {
                             "Prêt pour votre prochaine tournée"
                         } else {
                             "Prêt pour le circuit de $nextZone"
-                        }
-                    } else if (collectionDone) {
-                        "La tournée du jour est terminée"
-                    } else {
-                        "Continuez là où vous vous êtes arrêté"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = if (collectionDone) {
+                            "La tournée du jour est terminée"
+                        } else {
+                            "Continuez là où vous vous êtes arrêté"
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 
@@ -388,7 +492,11 @@ private fun CollectionKpiCard(
         }
 
         DashboardActionButton(
-            text = if (total == 0) "Commencer une tournée" else "Continuer la collecte",
+            text = when {
+                total == 0 -> "Commencer une tournée"
+                collectionDone -> "Voir la collecte"
+                else -> "Reprendre la tournée active"
+            },
             icon = Icons.Filled.PlayArrow,
             onClick = onOpenCollection,
             modifier = Modifier.fillMaxWidth(),
@@ -449,12 +557,30 @@ private fun DashboardKpiCard(
                 }
             }
 
-            Text(
-                text = value,
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            val amount = value.substringBeforeLast(' ', value)
+            val unit = value.substringAfterLast(' ', "")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = amount,
+                    modifier = Modifier.alignByBaseline(),
+                    style = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false
+                )
+                if (unit.isNotEmpty() && unit != amount) {
+                    Text(
+                        text = unit,
+                        modifier = Modifier.alignByBaseline(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -569,7 +695,7 @@ private fun LocalSyncCard() {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Données enregistrées localement sur cet appareil",
+                    text = "Enregistré localement sur cet appareil",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

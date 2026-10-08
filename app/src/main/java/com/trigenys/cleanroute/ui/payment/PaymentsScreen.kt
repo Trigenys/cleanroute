@@ -24,10 +24,11 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.domain.ArrearsEntry
+import com.trigenys.cleanroute.domain.PaymentPeriodSummary
 import com.trigenys.cleanroute.domain.CustomerId
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
@@ -55,6 +57,7 @@ fun PaymentsScreen(
     entries: List<ArrearsEntry>,
     period: YearMonth,
     query: String,
+    summary: PaymentPeriodSummary? = null,
     loading: Boolean,
     errorMessage: String?,
     innerPadding: PaddingValues,
@@ -191,6 +194,24 @@ fun PaymentsScreen(
                         )
                     }
 
+                    summary?.let { stats ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            PaymentStatTile(
+                                label = "CLIENTS RÉGLÉS",
+                                value = "${(stats.activeClients - entries.size).coerceAtLeast(0)}/${stats.activeClients}",
+                                modifier = Modifier.weight(1f)
+                            )
+                            PaymentStatTile(
+                                label = "TOTAL COLLECTÉ",
+                                value = formatXaf(stats.collectedXaf),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -239,7 +260,10 @@ fun PaymentsScreen(
                 leadingIcon = {
                     Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(24.dp))
                 },
-                placeholder = { Text("Rechercher par nom, téléphone ou zone…") },
+                trailingIcon = {
+                    Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(22.dp))
+                },
+                placeholder = { Text("Nom, téléphone ou zone…", maxLines = 1) },
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -324,6 +348,37 @@ fun PaymentsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PaymentStatTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
+            )
         }
     }
 }
@@ -417,30 +472,29 @@ private fun ArrearsCard(
                 )
             }
 
-            Button(
-                onClick = onRecordPayment,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                shape = CircleShape
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(Icons.Outlined.Payments, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Encaisser", fontWeight = FontWeight.ExtraBold)
-            }
-
-            OutlinedButton(
-                onClick = onRemindPayment,
-                enabled = entry.phone != null,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ChatBubbleOutline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Relancer sur WhatsApp")
+                Button(
+                    onClick = onRecordPayment,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Outlined.Payments, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Encaisser", fontWeight = FontWeight.ExtraBold)
+                }
+                FilledTonalButton(
+                    onClick = onRemindPayment,
+                    enabled = entry.phone != null,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "WhatsApp", fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
     }

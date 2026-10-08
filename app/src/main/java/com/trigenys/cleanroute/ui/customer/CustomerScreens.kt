@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.HomeWork
@@ -44,6 +46,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -115,7 +118,11 @@ fun CustomerDirectoryScreen(
     selectedSector: String? = null,
     onSectorSelected: (String?) -> Unit = {},
     onImportCustomers: () -> Unit = {},
-    onOpenCollection: () -> Unit = {}
+    onOpenCollection: () -> Unit = {},
+    outstandingByCustomer: Map<String, Long>? = null,
+    onCallCustomer: (CustomerDirectoryEntry) -> Unit = {},
+    onWhatsAppCustomer: (CustomerDirectoryEntry) -> Unit = {},
+    onCollectCustomer: (CustomerDirectoryEntry) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -213,7 +220,7 @@ fun CustomerDirectoryScreen(
             )
         }
 
-        if (sectors.isNotEmpty()) {
+        run {
             item {
                 Row(
                     modifier = Modifier
@@ -269,9 +276,14 @@ fun CustomerDirectoryScreen(
                 items = entries,
                 key = { it.customer.id.value }
             ) { entry ->
+                val id = entry.customer.id.value
                 CustomerRow(
                     entry = entry,
-                    onClick = { onCustomerSelected(entry) }
+                    onClick = { onCustomerSelected(entry) },
+                    outstandingXaf = outstandingByCustomer?.let { it[id] ?: 0L },
+                    onCall = entry.customer.phone?.let { { onCallCustomer(entry) } },
+                    onWhatsApp = entry.customer.phone?.let { { onWhatsAppCustomer(entry) } },
+                    onCollect = { onCollectCustomer(entry) }
                 )
             }
         }
@@ -347,20 +359,46 @@ private fun CustomerEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainer
+            Box(
+                modifier = Modifier.size(112.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.size(92.dp),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    modifier = Modifier.size(104.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .rotate(-6f),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Groups,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(44.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Groups,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
@@ -476,8 +514,14 @@ private fun CustomerQuickTool(
 @Composable
 private fun CustomerRow(
     entry: CustomerDirectoryEntry,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    outstandingXaf: Long? = null,
+    onCall: (() -> Unit)? = null,
+    onWhatsApp: (() -> Unit)? = null,
+    onCollect: (() -> Unit)? = null
 ) {
+    val inArrears = (outstandingXaf ?: 0L) > 0L
+    val active = entry.customer.status == CustomerStatus.ACTIVE
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -486,8 +530,12 @@ private fun CustomerRow(
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         shadowElevation = 1.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -514,22 +562,78 @@ private fun CustomerRow(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = buildString {
-                        append(entry.zoneName)
-                        entry.customer.phone?.let { append(" · ").append(it) }
-                    },
+                    text = entry.zoneName,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                entry.customer.phone?.let { phone ->
+                    Text(
+                        text = phone.replace(' ', ' '),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
             }
             StatusChip(
-                text = if (entry.customer.status == CustomerStatus.ACTIVE) "Actif" else "Suspendu",
-                tone = if (entry.customer.status == CustomerStatus.ACTIVE) {
-                    StatusTone.SUCCESS
-                } else {
-                    StatusTone.WARNING
-                }
+                text = when {
+                    !active -> "Suspendu"
+                    outstandingXaf == null -> "Actif"
+                    inArrears -> "Impayé"
+                    else -> "À jour"
+                },
+                tone = if (active && !inArrears) StatusTone.SUCCESS else StatusTone.WARNING
             )
+        }
+
+        if (active && outstandingXaf != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (inArrears) {
+                    FilledTonalButton(
+                        onClick = { onWhatsApp?.invoke() },
+                        enabled = onWhatsApp != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("Relance 1-clic", maxLines = 1)
+                    }
+                    Button(
+                        onClick = { onCollect?.invoke() },
+                        enabled = onCollect != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("Encaisser", maxLines = 1)
+                    }
+                } else {
+                    FilledTonalButton(
+                        onClick = { onCall?.invoke() },
+                        enabled = onCall != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Phone,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Appeler", maxLines = 1)
+                    }
+                    FilledTonalButton(
+                        onClick = { onWhatsApp?.invoke() },
+                        enabled = onWhatsApp != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("WhatsApp", maxLines = 1)
+                    }
+                }
+            }
+        }
         }
     }
 }
@@ -548,7 +652,8 @@ fun CustomerDetailScreen(
     retentionProfile: RetentionCustomerProfile? = null,
     retentionFeedback: String? = null,
     onAttributeReferrer: () -> Unit = {},
-    onAwardReferral: (ReferralId) -> Unit = {}
+    onAwardReferral: (ReferralId) -> Unit = {},
+    currentPeriod: YearMonth = YearMonth.now()
 ) {
     val timelineEntries = customerTimelineEntries(profile)
     val latestRecordedPayment = profile.recentPayments
@@ -571,6 +676,7 @@ fun CustomerDetailScreen(
         item {
             CustomerContextHeader(
                 profile = profile,
+                currentPeriod = currentPeriod,
                 onBack = onBack,
                 onEdit = onEdit
             )
@@ -654,6 +760,7 @@ fun CustomerDetailScreen(
 @Composable
 private fun CustomerContextHeader(
     profile: CustomerProfile,
+    currentPeriod: YearMonth,
     onBack: () -> Unit,
     onEdit: () -> Unit
 ) {
@@ -682,17 +789,21 @@ private fun CustomerContextHeader(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                StatusChip(
-                    text = if (profile.customer.status == CustomerStatus.ACTIVE) {
-                        "ACTIF"
-                    } else {
-                        "SUSPENDU"
-                    },
-                    tone = if (profile.customer.status == CustomerStatus.ACTIVE) {
-                        StatusTone.SUCCESS
-                    } else {
-                        StatusTone.WARNING
+                val paidThisMonth = profile.recentPayments
+                    .filter {
+                        it.state == PaymentState.RECORDED &&
+                            it.servicePeriod == currentPeriod
                     }
+                    .sumOf { it.amountXaf }
+                val upToDate = paidThisMonth >= profile.servicePlan.monthlyFeeXaf
+                val active = profile.customer.status == CustomerStatus.ACTIVE
+                StatusChip(
+                    text = when {
+                        !active -> "SUSPENDU"
+                        upToDate -> "À JOUR"
+                        else -> "IMPAYÉ"
+                    },
+                    tone = if (active && upToDate) StatusTone.SUCCESS else StatusTone.WARNING
                 )
             }
             Text(
@@ -1431,10 +1542,12 @@ internal fun CustomerFormContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                StatusChip(
-                    text = "LOCAL DB",
-                    tone = StatusTone.SUCCESS
-                )
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = "Fermer"
+                    )
+                }
             }
         }
 
@@ -1525,7 +1638,8 @@ internal fun CustomerFormContent(
                     onValueChange = { monthlyFee = it.filter(Char::isDigit) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    placeholder = { Text("Montant en FCFA") },
+                    placeholder = { Text("Montant") },
+                    suffix = { Text("FCFA", fontWeight = FontWeight.Bold) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(18.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -1614,7 +1728,7 @@ internal fun CustomerFormContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .weight(0.8f)

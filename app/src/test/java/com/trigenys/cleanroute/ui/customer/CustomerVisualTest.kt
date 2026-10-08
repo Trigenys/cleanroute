@@ -15,7 +15,7 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "w390dp-h844dp")
+@Config(sdk = [35], qualifiers = "w390dp-h1800dp")
 class CustomerVisualTest {
     @Test
     fun emptyDirectory() {
@@ -58,6 +58,7 @@ class CustomerVisualTest {
                     onAddCustomer = {},
                     onCustomerSelected = {},
                     totalCount = 2,
+                    outstandingByCustomer = mapOf(profile.customer.id.value to 7_500L),
                     sectors = listOf("Bonamoussadi", "Makepe"),
                     onSectorSelected = {},
                     onImportCustomers = {},
@@ -94,6 +95,7 @@ class CustomerVisualTest {
             CleanRouteTheme {
                 CustomerDetailScreen(
                     profile = profile,
+                    currentPeriod = java.time.YearMonth.of(2026, 9),
                     innerPadding = PaddingValues(),
                     onBack = {},
                     onEdit = {},

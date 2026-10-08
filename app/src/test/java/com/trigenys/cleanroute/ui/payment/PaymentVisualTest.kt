@@ -16,7 +16,7 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "w390dp-h844dp")
+@Config(sdk = [35], qualifiers = "w390dp-h1800dp")
 class PaymentVisualTest {
     @Test
     fun ledgerError() {
@@ -47,6 +47,10 @@ class PaymentVisualTest {
                     entries = sampleArrearsEntries(),
                     period = YearMonth.of(2026, 9),
                     query = "",
+                    summary = com.trigenys.cleanroute.domain.PaymentPeriodSummary(
+                        activeClients = 12,
+                        collectedXaf = 42_500
+                    ),
                     loading = false,
                     errorMessage = null,
                     innerPadding = PaddingValues(),

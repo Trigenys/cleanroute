@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.trigenys.cleanroute.data.local.ArrearsRow
+import com.trigenys.cleanroute.data.local.PeriodSummaryRow
 import com.trigenys.cleanroute.data.local.entity.OutboxOperationEntity
 import com.trigenys.cleanroute.data.local.entity.PaymentEntity
 
@@ -110,6 +111,19 @@ abstract class PaymentDao {
         servicePeriod: String,
         query: String
     ): List<ArrearsRow>
+
+    @Query(
+        """
+        SELECT
+            (SELECT COUNT(*) FROM customers WHERE status = 'ACTIVE') AS activeClients,
+            COALESCE(
+                (SELECT SUM(amountXaf) FROM payments
+                 WHERE state = 'RECORDED' AND servicePeriod = :servicePeriod),
+                0
+            ) AS collectedXaf
+        """
+    )
+    abstract suspend fun periodSummary(servicePeriod: String): PeriodSummaryRow
 
     @Upsert
     protected abstract suspend fun upsertEntity(payment: PaymentEntity)

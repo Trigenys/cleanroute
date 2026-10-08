@@ -116,6 +116,32 @@ class PaymentRepositoryTest {
     }
 
     @Test
+    fun periodSummaryCountsActiveClientsAndRecordedCollections() = runBlocking {
+        val customerId = createCustomer()
+        val period = YearMonth.of(2026, 9)
+        val recordedAt = Instant.parse("2026-09-27T10:00:00Z")
+
+        val payment = payments.record(
+            draft = PaymentDraft(
+                submissionId = "submit-summary",
+                customerId = customerId,
+                servicePeriod = period,
+                amountXaf = 5_000,
+                method = PaymentMethods.CASH.method
+            ),
+            at = recordedAt
+        )
+
+        val collected = payments.periodSummary(period)
+        assertEquals(1, collected?.activeClients)
+        assertEquals(5_000L, collected?.collectedXaf)
+        assertEquals(0L, payments.periodSummary(period.plusMonths(1))?.collectedXaf)
+
+        payments.reverse(id = payment.id, at = recordedAt.plusSeconds(60))
+        assertEquals(0L, payments.periodSummary(period)?.collectedXaf)
+    }
+
+    @Test
     fun paymentMethodsComeFromDomainCatalog() {
         assertEquals(
             listOf("cash", "orange_money", "mtn_momo"),

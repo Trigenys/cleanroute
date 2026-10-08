@@ -57,6 +57,7 @@ fun CustomerDirectoryRoute(
     var selectedCustomerId by rememberSaveable { mutableStateOf<String?>(null) }
     var entries by remember { mutableStateOf(emptyList<CustomerDirectoryEntry>()) }
     var sectors by remember { mutableStateOf(emptyList<String>()) }
+    var outstandingByCustomer by remember { mutableStateOf<Map<String, Long>?>(null) }
     var totalCount by remember { mutableIntStateOf(0) }
     var profile by remember { mutableStateOf<CustomerProfile?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -74,6 +75,12 @@ fun CustomerDirectoryRoute(
     var showReferralDialog by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(refreshVersion) {
+        outstandingByCustomer = runCatching {
+            paymentRepository.arrears(YearMonth.now(), "")
+        }.getOrNull()?.associate { it.customerId.value to it.outstandingXaf }
+    }
 
     LaunchedEffect(refreshVersion) {
         val allEntries = repository.search("")
@@ -257,7 +264,52 @@ fun CustomerDirectoryRoute(
             selectedSector = selectedSector,
             onSectorSelected = { selectedSector = it },
             onImportCustomers = onOpenImport,
-            onOpenCollection = onOpenCollection
+            onOpenCollection = onOpenCollection,
+            outstandingByCustomer = outstandingByCustomer,
+            onCallCustomer = { entry ->
+                val phone = entry.customer.phone
+                if (phone != null) {
+                    scope.launch {
+                        contactFeedback = contactService.call(
+                            context = context,
+                            customerId = entry.customer.id,
+                            rawPhone = phone,
+                            at = Instant.now()
+                        ).feedback()
+                    }
+                }
+            },
+            onWhatsAppCustomer = { entry ->
+                val phone = entry.customer.phone
+                if (phone != null) {
+                    val owed = outstandingByCustomer?.get(entry.customer.id.value) ?: 0L
+                    val reminder = owed > 0L
+                    scope.launch {
+                        contactFeedback = contactService.whatsApp(
+                            context = context,
+                            customerId = entry.customer.id,
+                            rawPhone = phone,
+                            kind = if (reminder) CustomerMessageKind.PAYMENT_REMINDER else null,
+                            data = if (reminder) {
+                                CustomerMessageData(
+                                    customerName = entry.customer.name,
+                                    collectionDate = null,
+                                    outstandingXaf = owed,
+                                    servicePeriod = YearMonth.now()
+                                )
+                            } else {
+                                null
+                            },
+                            at = Instant.now()
+                        ).feedback()
+                    }
+                }
+            },
+            onCollectCustomer = { entry ->
+                paymentError = null
+                paymentSubmissionId = UUID.randomUUID().toString()
+                selectedCustomerId = entry.customer.id.value
+            }
         )
     }
 

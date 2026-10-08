@@ -106,6 +106,8 @@ fun CollectionWorkflowRoute(
                 refreshVersion += 1
             },
             tourStarted = tourStarted,
+            onOpenClients = onOpenClients,
+            onOpenExcel = onOpenExcel,
             onStartTour = {
                 tourStarted = true
                 expandedVisitId = currentRoute.stops
