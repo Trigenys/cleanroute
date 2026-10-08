@@ -243,7 +243,7 @@ fun PaymentsScreen(
                 trailingIcon = {
                     Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(22.dp))
                 },
-                placeholder = { Text("Rechercher par nom, téléphone ou zone…") },
+                placeholder = { Text("Nom, téléphone ou zone…", maxLines = 1) },
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
