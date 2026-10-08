@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -189,8 +193,20 @@ fun DataTransferScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
+                    val dashColor = MaterialTheme.colorScheme.outline
                     Surface(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .drawBehind {
+                                drawRoundRect(
+                                    color = dashColor,
+                                    cornerRadius = CornerRadius(18.dp.toPx()),
+                                    style = Stroke(
+                                        width = 1.5.dp.toPx(),
+                                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))
+                                    )
+                                )
+                            },
                         shape = RoundedCornerShape(18.dp),
                         color = MaterialTheme.colorScheme.surfaceContainer
                     ) {
@@ -214,7 +230,7 @@ fun DataTransferScreen(
                                 }
                             }
                             Text(
-                                text = "Choisissez votre classeur",
+                                text = "Glissez votre classeur ici",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.ExtraBold
                             )
@@ -240,12 +256,24 @@ fun DataTransferScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        Text(
-                            text = "COLONNES RECONNUES",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "COLONNES RECONNUES",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Auto-mapping",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -328,9 +356,9 @@ fun DataTransferScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        ExportSheetTile(Icons.Outlined.People, "Clients", Modifier.weight(1f))
-                        ExportSheetTile(Icons.Outlined.Payments, "Paiements", Modifier.weight(1f))
-                        ExportSheetTile(Icons.Outlined.LocalShipping, "Collectes", Modifier.weight(1f))
+                        ExportSheetTile(Icons.Outlined.People, "1. Clients", Modifier.weight(1f))
+                        ExportSheetTile(Icons.Outlined.Payments, "2. Paiements", Modifier.weight(1f))
+                        ExportSheetTile(Icons.Outlined.LocalShipping, "3. Collectes", Modifier.weight(1f))
                     }
 
                     Button(
