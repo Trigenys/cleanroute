@@ -58,6 +58,7 @@ class CustomerVisualTest {
                     onAddCustomer = {},
                     onCustomerSelected = {},
                     totalCount = 2,
+                    outstandingByCustomer = mapOf(profile.customer.id.value to 7_500L),
                     sectors = listOf("Bonamoussadi", "Makepe"),
                     onSectorSelected = {},
                     onImportCustomers = {},
