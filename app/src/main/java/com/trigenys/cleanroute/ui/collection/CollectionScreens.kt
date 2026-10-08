@@ -26,10 +26,12 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.Button
@@ -878,16 +880,19 @@ private fun ZoneConfigurationHeader(
         ) {
             ZoneMetric(
                 label = "PRÉVUS",
+                icon = Icons.Outlined.Groups,
                 value = route.stops.size.toString(),
                 modifier = Modifier.weight(1f)
             )
             ZoneMetric(
                 label = "RESTANTS",
+                icon = Icons.Outlined.Schedule,
                 value = route.remainingStops.toString(),
                 modifier = Modifier.weight(1f)
             )
             ZoneMetric(
                 label = "TERMINÉS",
+                icon = Icons.Outlined.CheckCircle,
                 value = route.completedStops.toString(),
                 modifier = Modifier.weight(1f)
             )
@@ -910,6 +915,7 @@ private fun ZoneConfigurationHeader(
 private fun ZoneMetric(
     label: String,
     value: String,
+    icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -921,12 +927,23 @@ private fun ZoneMetric(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,

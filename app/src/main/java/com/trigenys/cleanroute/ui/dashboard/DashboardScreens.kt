@@ -453,30 +453,32 @@ private fun CollectionKpiCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
-                    text = if (total == 0) {
-                        "Aucune tournée démarrée"
-                    } else {
-                        "$completed / $total passages terminés"
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = if (total == 0) {
-                        if (nextZone == null) {
+                if (total == 0) {
+                    Text(
+                        text = "Aucune tournée démarrée",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = if (nextZone == null) {
                             "Prêt pour votre prochaine tournée"
                         } else {
                             "Prêt pour le circuit de $nextZone"
-                        }
-                    } else if (collectionDone) {
-                        "La tournée du jour est terminée"
-                    } else {
-                        "Continuez là où vous vous êtes arrêté"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = if (collectionDone) {
+                            "La tournée du jour est terminée"
+                        } else {
+                            "Continuez là où vous vous êtes arrêté"
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 
@@ -693,7 +695,7 @@ private fun LocalSyncCard() {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Données enregistrées localement sur cet appareil",
+                    text = "Enregistré localement sur cet appareil",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
