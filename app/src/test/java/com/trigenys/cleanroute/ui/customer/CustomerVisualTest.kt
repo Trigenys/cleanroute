@@ -95,6 +95,7 @@ class CustomerVisualTest {
             CleanRouteTheme {
                 CustomerDetailScreen(
                     profile = profile,
+                    currentPeriod = java.time.YearMonth.of(2026, 9),
                     innerPadding = PaddingValues(),
                     onBack = {},
                     onEdit = {},

@@ -101,6 +101,7 @@ import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import YearMonth
 import java.util.Locale
 
 @Composable
@@ -625,7 +626,8 @@ fun CustomerDetailScreen(
     retentionProfile: RetentionCustomerProfile? = null,
     retentionFeedback: String? = null,
     onAttributeReferrer: () -> Unit = {},
-    onAwardReferral: (ReferralId) -> Unit = {}
+    onAwardReferral: (ReferralId) -> Unit = {},
+    currentPeriod: YearMonth = YearMonth.now()
 ) {
     val timelineEntries = customerTimelineEntries(profile)
     val latestRecordedPayment = profile.recentPayments
@@ -648,6 +650,7 @@ fun CustomerDetailScreen(
         item {
             CustomerContextHeader(
                 profile = profile,
+                currentPeriod = currentPeriod,
                 onBack = onBack,
                 onEdit = onEdit
             )
@@ -731,6 +734,7 @@ fun CustomerDetailScreen(
 @Composable
 private fun CustomerContextHeader(
     profile: CustomerProfile,
+    currentPeriod: YearMonth,
     onBack: () -> Unit,
     onEdit: () -> Unit
 ) {
@@ -762,7 +766,7 @@ private fun CustomerContextHeader(
                 val paidThisMonth = profile.recentPayments
                     .filter {
                         it.state == PaymentState.RECORDED &&
-                            it.servicePeriod == java.time.YearMonth.now()
+                            it.servicePeriod == currentPeriod
                     }
                     .sumOf { it.amountXaf }
                 val upToDate = paidThisMonth >= profile.servicePlan.monthlyFeeXaf
