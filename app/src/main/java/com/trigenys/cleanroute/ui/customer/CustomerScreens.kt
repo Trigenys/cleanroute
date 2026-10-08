@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -358,20 +359,46 @@ private fun CustomerEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainer
+            Box(
+                modifier = Modifier.size(112.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.size(92.dp),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    modifier = Modifier.size(104.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .rotate(-6f),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Groups,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(44.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Groups,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
