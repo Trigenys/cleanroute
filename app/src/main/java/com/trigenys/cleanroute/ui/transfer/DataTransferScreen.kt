@@ -230,7 +230,7 @@ fun DataTransferScreen(
                                 }
                             }
                             Text(
-                                text = "Glissez votre classeur ici",
+                                text = "Choisissez votre classeur",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.ExtraBold
                             )
