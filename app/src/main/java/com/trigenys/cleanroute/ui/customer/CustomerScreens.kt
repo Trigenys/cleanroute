@@ -759,17 +759,21 @@ private fun CustomerContextHeader(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                StatusChip(
-                    text = if (profile.customer.status == CustomerStatus.ACTIVE) {
-                        "ACTIF"
-                    } else {
-                        "SUSPENDU"
-                    },
-                    tone = if (profile.customer.status == CustomerStatus.ACTIVE) {
-                        StatusTone.SUCCESS
-                    } else {
-                        StatusTone.WARNING
+                val paidThisMonth = profile.recentPayments
+                    .filter {
+                        it.state == PaymentState.RECORDED &&
+                            it.servicePeriod == java.time.YearMonth.now()
                     }
+                    .sumOf { it.amountXaf }
+                val upToDate = paidThisMonth >= profile.servicePlan.monthlyFeeXaf
+                val active = profile.customer.status == CustomerStatus.ACTIVE
+                StatusChip(
+                    text = when {
+                        !active -> "SUSPENDU"
+                        upToDate -> "À JOUR"
+                        else -> "IMPAYÉ"
+                    },
+                    tone = if (active && upToDate) StatusTone.SUCCESS else StatusTone.WARNING
                 )
             }
             Text(
