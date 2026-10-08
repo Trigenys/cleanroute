@@ -49,7 +49,7 @@ fun CleanRouteTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 78.dp)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
@@ -63,7 +63,7 @@ fun CleanRouteTopBar(
                 )
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
@@ -78,9 +78,9 @@ fun CleanRouteTopBar(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+                    modifier = Modifier.padding(horizontal = 11.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -110,7 +110,7 @@ fun CleanRouteTopBar(
 
             FilledIconButton(
                 onClick = onProfileClick,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Person,

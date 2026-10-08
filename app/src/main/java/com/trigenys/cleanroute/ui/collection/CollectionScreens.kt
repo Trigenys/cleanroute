@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowForward
@@ -38,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.domain.CollectionVisit
 import com.trigenys.cleanroute.domain.CollectionVisitId
@@ -370,7 +373,7 @@ private fun ExcelTemplateCard(
                 )
             }
 
-            OutlinedButton(onClick = onOpenExcel) {
+            FilledTonalButton(onClick = onOpenExcel, shape = CircleShape) {
                 Text("Ouvrir")
             }
         }
@@ -424,8 +427,10 @@ private fun ZoneWorkloadCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = workload.zoneName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = if (workload.totalStops == 0) {
@@ -438,11 +443,12 @@ private fun ZoneWorkloadCard(
                     )
                 }
 
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = onClick,
-                    shape = CircleShape
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Text("Configurer")
+                    Text("Configurer", maxLines = 1)
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.Outlined.ArrowForward,
@@ -479,6 +485,12 @@ fun DailyRouteScreen(
     tourStarted: Boolean = true,
     onStartTour: () -> Unit = {}
 ) {
+    val activeStop = if (tourStarted) {
+        route.stops.firstOrNull { it.visit.status == CollectionVisitStatus.SCHEDULED }
+    } else {
+        null
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -492,15 +504,21 @@ fun DailyRouteScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        item {
-            ZoneReadyBanner(route = route)
-        }
+        if (activeStop != null) {
+            item {
+                ActiveTourHeader(route = route, onBack = onBack)
+            }
+        } else {
+            item {
+                ZoneReadyBanner(route = route)
+            }
 
-        item {
-            ZoneConfigurationHeader(
-                route = route,
-                onBack = onBack
-            )
+            item {
+                ZoneConfigurationHeader(
+                    route = route,
+                    onBack = onBack
+                )
+            }
         }
 
         if (busy) {
@@ -525,6 +543,66 @@ fun DailyRouteScreen(
             }
         }
 
+        if (activeStop != null) {
+            item {
+                ActiveStopCard(
+                    stop = activeStop,
+                    busy = busy,
+                    onOutcome = { outcome -> onOutcome(activeStop.visit.id, outcome) },
+                    onCall = activeStop.phone?.let { { onCall(activeStop) } },
+                    onWhatsApp = activeStop.phone?.let { { onWhatsApp(activeStop) } }
+                )
+            }
+
+            val upcoming = route.stops.filter {
+                it.visit.status == CollectionVisitStatus.SCHEDULED && it != activeStop
+            }
+            if (upcoming.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Prochaines étapes (${upcoming.size} restant${if (upcoming.size > 1) "s" else ""})",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                items(
+                    items = upcoming,
+                    key = { stop -> "upcoming-" + stop.visit.id.value }
+                ) { stop ->
+                    UpcomingStopRow(
+                        position = route.stops.indexOf(stop) + 1,
+                        stop = stop
+                    )
+                }
+            }
+
+            val handled = route.stops.filter { it.visit.status != CollectionVisitStatus.SCHEDULED }
+            if (handled.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Déjà traités (${handled.size})",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                items(
+                    items = handled,
+                    key = { stop -> "handled-" + stop.visit.id.value }
+                ) { stop ->
+                    CollectionStopCard(
+                        position = route.stops.indexOf(stop) + 1,
+                        stop = stop,
+                        expanded = expandedVisitId == stop.visit.id.value,
+                        busy = busy,
+                        tourStarted = tourStarted,
+                        onToggleActions = { onToggleActions(stop.visit.id) },
+                        onOutcome = { outcome -> onOutcome(stop.visit.id, outcome) },
+                        onCall = stop.phone?.let { { onCall(stop) } },
+                        onWhatsApp = stop.phone?.let { { onWhatsApp(stop) } }
+                    )
+                }
+            }
+        } else {
         item {
             ScheduleSection(route = route)
         }
@@ -586,6 +664,7 @@ fun DailyRouteScreen(
                     onWhatsApp = stop.phone?.let { { onWhatsApp(stop) } }
                 )
             }
+        }
         }
 
         if (!tourStarted) {
@@ -1037,6 +1116,232 @@ private fun CollectionStopCard(
                     Text("Corriger en « Collecté »")
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ActiveTourHeader(
+    route: DailyCollectionRoute,
+    onBack: () -> Unit
+) {
+    val total = route.stops.size
+    val progress = if (total == 0) 0f else route.completedStops.toFloat() / total
+
+    CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.Outlined.ArrowBack,
+                    contentDescription = "Retour"
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = route.zoneName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "Tournée en cours",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            StatusChip(
+                text = "${route.completedStops}/$total collectés",
+                tone = StatusTone.SUCCESS
+            )
+        }
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    }
+}
+
+@Composable
+private fun ActiveStopCard(
+    stop: DailyCollectionStop,
+    busy: Boolean,
+    onOutcome: (CollectionVisitStatus) -> Unit,
+    onCall: (() -> Unit)?,
+    onWhatsApp: (() -> Unit)?
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "ARRÊT IMMÉDIAT",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = stop.customerName,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            stop.addressLabel?.let { address ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = address,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                FilledTonalButton(
+                    onClick = { onCall?.invoke() },
+                    enabled = !busy && onCall != null,
+                    modifier = Modifier.weight(1f),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Phone,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("Appel direct", maxLines = 1)
+                }
+                FilledTonalButton(
+                    onClick = { onWhatsApp?.invoke() },
+                    enabled = !busy && onWhatsApp != null,
+                    modifier = Modifier.weight(1f),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ChatBubbleOutline,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("WhatsApp", maxLines = 1)
+                }
+            }
+            Button(
+                onClick = { onOutcome(CollectionVisitStatus.COLLECTED) },
+                enabled = !busy,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp),
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Collecté", fontWeight = FontWeight.Bold)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                FilledTonalButton(
+                    onClick = { onOutcome(CollectionVisitStatus.ABSENT) },
+                    enabled = !busy,
+                    modifier = Modifier.weight(1f),
+                    shape = CircleShape
+                ) {
+                    Text("Absent", maxLines = 1)
+                }
+                FilledTonalButton(
+                    onClick = { onOutcome(CollectionVisitStatus.NO_WASTE) },
+                    enabled = !busy,
+                    modifier = Modifier.weight(1f),
+                    shape = CircleShape
+                ) {
+                    Text("Pas de déchet", maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpcomingStopRow(
+    position: Int,
+    stop: DailyCollectionStop
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(32.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = position.toString(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stop.customerName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                stop.addressLabel?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            StatusChip(text = "À venir", tone = StatusTone.NEUTRAL)
         }
     }
 }
