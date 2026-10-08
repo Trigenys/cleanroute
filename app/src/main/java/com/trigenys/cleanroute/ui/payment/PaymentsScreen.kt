@@ -24,10 +24,11 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -239,6 +240,9 @@ fun PaymentsScreen(
                 leadingIcon = {
                     Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(24.dp))
                 },
+                trailingIcon = {
+                    Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(22.dp))
+                },
                 placeholder = { Text("Rechercher par nom, téléphone ou zone…") },
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -417,30 +421,29 @@ private fun ArrearsCard(
                 )
             }
 
-            Button(
-                onClick = onRecordPayment,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                shape = CircleShape
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(Icons.Outlined.Payments, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Encaisser", fontWeight = FontWeight.ExtraBold)
-            }
-
-            OutlinedButton(
-                onClick = onRemindPayment,
-                enabled = entry.phone != null,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ChatBubbleOutline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Relancer sur WhatsApp")
+                Button(
+                    onClick = onRecordPayment,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Outlined.Payments, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Encaisser", fontWeight = FontWeight.ExtraBold)
+                }
+                FilledTonalButton(
+                    onClick = onRemindPayment,
+                    enabled = entry.phone != null,
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "WhatsApp", fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
     }
