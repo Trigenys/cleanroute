@@ -279,7 +279,7 @@ private fun FirstClientCard(
                 )
                 Text(
                     text = "Ajoutez un client ou importez votre fichier Excel pour alimenter les tournées et les paiements.",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -313,7 +313,8 @@ private fun CollectionKpiCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.weight(1f),
@@ -328,8 +329,8 @@ private fun CollectionKpiCard(
                 )
                 Text(
                     text = "Collecte du jour",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1
                 )
             }
             StatusChip(
