@@ -245,6 +245,57 @@ fun OwnerDashboardScreen(
                 }
             }
 
+            if (current.zones.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Zones du jour",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        current.zones.forEach { zone ->
+                            val done = zone.totalStops > 0 && zone.remainingStops == 0
+                            val started = zone.completedStops > 0
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.large,
+                                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                shadowElevation = 1.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = zone.zoneName,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = "${zone.completedStops}/${zone.totalStops} collectés" +
+                                                if (zone.remainingStops > 0) " · ${zone.remainingStops} restants" else "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    StatusChip(
+                                        text = when {
+                                            done -> "Terminé"
+                                            started -> "En cours"
+                                            else -> "À venir"
+                                        },
+                                        tone = if (done || started) StatusTone.SUCCESS else StatusTone.NEUTRAL
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 LocalSyncCard()
             }
@@ -333,10 +384,59 @@ private fun CollectionKpiCard(
                     maxLines = 1
                 )
             }
+            val tourActive = total > 0 && !collectionDone
             StatusChip(
-                text = if (collectionDone) "Terminée" else "Hors connexion",
-                tone = if (collectionDone) StatusTone.SUCCESS else StatusTone.NEUTRAL
+                text = when {
+                    collectionDone -> "Terminée"
+                    tourActive -> "En cours"
+                    else -> "Hors connexion"
+                },
+                tone = if (collectionDone || tourActive) StatusTone.SUCCESS else StatusTone.NEUTRAL
             )
+        }
+
+        if (total > 0 && !collectionDone) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Étape ${completed + 1} sur $total",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = completed.toString(),
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "/$total ménages",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = (total - completed).toString(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "restants",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         Row(
@@ -390,7 +490,11 @@ private fun CollectionKpiCard(
         }
 
         DashboardActionButton(
-            text = if (total == 0) "Commencer une tournée" else "Continuer la collecte",
+            text = when {
+                total == 0 -> "Commencer une tournée"
+                collectionDone -> "Voir la collecte"
+                else -> "Reprendre la tournée active"
+            },
             icon = Icons.Filled.PlayArrow,
             onClick = onOpenCollection,
             modifier = Modifier.fillMaxWidth(),
