@@ -73,3 +73,30 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 
 **Prevention rule:** every offline-first critical write path must have at least one file-backed close/reopen test. In-memory Room tests remain useful for business rules but are not accepted as evidence of restart durability.
 
+## 2026-10-02 — Visual regression path filter watched a resource folder that does not exist
+
+**What happened:** while migrating CI to AppFactory Impact-Aware CI, the inventory showed that `visual-regression.yml` triggered on `app/src/main/res/drawable/**`. The repository has no `drawable/` folder: its rendered assets live in `res/drawable-nodpi/` and `res/mipmap-anydpi-v26/`. A change to the logo or launcher icon therefore ran Android CI but never the Roborazzi golden suite. This was a near miss: no incorrect screenshot was merged.
+
+**Root cause:** routing rules were hand-copied `paths:` lists duplicated across workflows, written against an assumed Android resource layout and never tested themselves. Nothing failed when a filter stopped matching the real tree.
+
+**Why existing controls did not catch it:** a missing trigger produces no run and therefore no red signal; GitHub does not warn about `paths:` patterns that match nothing.
+
+**Fix:** the routing policy now lives in one declarative file, `.github/appfactory-impact.json`, consumed by the AppFactory reusable impact analysis. The UI surface owns all of `app/src/main/res/**`, and unclassified paths fall back to every gate.
+
+**Prevention rule:** routing rules are tested like code. `.github/appfactory-impact.cases.json` lists expected gates per change type (including a `drawable-nodpi` case) and the `impact-policy` gate replays them against the pinned AppFactory engine whenever the policy, the dispatcher or the verifier changes. New path-scoped gates must be expressed in the impact map with a case, not as a new copied `paths:` list.
+
+**Generalized lesson:** a trigger filter that silently matches nothing is a disabled test. Prefer fail-safe routing (unknown paths run everything) and assertions on the routing table over per-workflow path lists.
+
+## 2026-10-08 — Visual golden depended on the wall-clock month
+
+**What happened:** `MoreVisualTest.paymentsTab` passed until the month rolled over, then failed `visual-regression` on every PR: the golden showed "Septembre 2026" while the render showed "Octobre 2026".
+
+**Root cause:** the empty-ledger branch of `MoreRoute` called `YearMonth.now()` directly, so the captured pixels depended on the date the test ran. Other payment captures already pinned `YearMonth.of(2026, 9)`.
+
+**Why existing controls did not catch it:** the golden was recorded and verified within the same month; no check flags time-dependent rendering.
+
+**Fix:** `MoreRoute` takes `emptyLedgerPeriod` (default `YearMonth.now()`); the visual test pins September 2026.
+
+**Prevention rule:** any screen captured by Roborazzi receives its date/period as a parameter; tests never read the system clock.
+
+**Generalized lesson:** a golden that reads the clock is a test with an expiry date. Inject time at the boundary.
