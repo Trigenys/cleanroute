@@ -273,8 +273,9 @@ private fun FirstClientCard(
             ) {
                 Text(
                     text = "Commencez par vos clients",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    softWrap = false
                 )
                 Text(
                     text = "Ajoutez un client ou importez votre fichier Excel pour alimenter les tournées et les paiements.",
