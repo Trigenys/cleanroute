@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trigenys.cleanroute.domain.ArrearsEntry
+import com.trigenys.cleanroute.domain.PaymentPeriodSummary
 import com.trigenys.cleanroute.domain.CustomerId
 import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
@@ -56,6 +57,7 @@ fun PaymentsScreen(
     entries: List<ArrearsEntry>,
     period: YearMonth,
     query: String,
+    summary: PaymentPeriodSummary? = null,
     loading: Boolean,
     errorMessage: String?,
     innerPadding: PaddingValues,
@@ -190,6 +192,24 @@ fun PaymentsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 6.dp)
                         )
+                    }
+
+                    summary?.let { stats ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            PaymentStatTile(
+                                label = "CLIENTS RÉGLÉS",
+                                value = "${(stats.activeClients - entries.size).coerceAtLeast(0)}/${stats.activeClients}",
+                                modifier = Modifier.weight(1f)
+                            )
+                            PaymentStatTile(
+                                label = "TOTAL COLLECTÉ",
+                                value = formatXaf(stats.collectedXaf),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
 
                     Surface(
@@ -328,6 +348,37 @@ fun PaymentsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PaymentStatTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
+            )
         }
     }
 }

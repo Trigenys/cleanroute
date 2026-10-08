@@ -83,6 +83,8 @@ interface PaymentRepository {
         query: String
     ): List<ArrearsEntry>
 
+    suspend fun periodSummary(servicePeriod: YearMonth): PaymentPeriodSummary? = null
+
     suspend fun upsert(payment: Payment)
 }
 

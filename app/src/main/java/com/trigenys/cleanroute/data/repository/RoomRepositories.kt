@@ -18,6 +18,7 @@ import com.trigenys.cleanroute.domain.CustomerId
 import com.trigenys.cleanroute.domain.CustomerProfile
 import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.domain.Payment
+import com.trigenys.cleanroute.domain.PaymentPeriodSummary
 import com.trigenys.cleanroute.domain.PaymentDraft
 import com.trigenys.cleanroute.domain.PaymentId
 import com.trigenys.cleanroute.domain.PaymentLedger
@@ -244,6 +245,14 @@ class RoomPaymentRepository(
                     outstandingXaf = row.outstandingXaf
                 )
             }
+
+    override suspend fun periodSummary(servicePeriod: YearMonth): PaymentPeriodSummary =
+        database.paymentDao().periodSummary(servicePeriod.toString()).let { row ->
+            PaymentPeriodSummary(
+                activeClients = row.activeClients,
+                collectedXaf = row.collectedXaf
+            )
+        }
 
     override suspend fun upsert(payment: Payment) {
         database.paymentDao().upsertWithOutbox(

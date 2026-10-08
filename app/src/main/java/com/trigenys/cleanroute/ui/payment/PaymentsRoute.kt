@@ -17,6 +17,7 @@ import com.trigenys.cleanroute.communication.CustomerMessageData
 import com.trigenys.cleanroute.communication.CustomerMessageKind
 import com.trigenys.cleanroute.domain.ArrearsEntry
 import com.trigenys.cleanroute.domain.PaymentDraft
+import com.trigenys.cleanroute.domain.PaymentPeriodSummary
 import com.trigenys.cleanroute.domain.PaymentRepository
 import java.time.Instant
 import java.time.YearMonth
@@ -33,6 +34,7 @@ fun PaymentsRoute(
     val period = remember(periodText) { YearMonth.parse(periodText) }
     var query by rememberSaveable { mutableStateOf("") }
     var entries by remember { mutableStateOf(emptyList<ArrearsEntry>()) }
+    var summary by remember { mutableStateOf<PaymentPeriodSummary?>(null) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var paymentTarget by remember { mutableStateOf<ArrearsEntry?>(null) }
@@ -54,8 +56,13 @@ fun PaymentsRoute(
         loading = false
     }
 
+    LaunchedEffect(period, refreshVersion) {
+        summary = runCatching { repository.periodSummary(period) }.getOrNull()
+    }
+
     PaymentsScreen(
         entries = entries,
+        summary = summary,
         period = period,
         query = query,
         loading = loading,
