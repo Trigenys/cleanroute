@@ -44,7 +44,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -68,6 +74,8 @@ import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+
+private const val COLLAPSED_STOP_COUNT = 4
 
 @Composable
 fun ZoneWorkloadScreen(
@@ -483,8 +491,12 @@ fun DailyRouteScreen(
     onCall: (DailyCollectionStop) -> Unit,
     onWhatsApp: (DailyCollectionStop) -> Unit,
     tourStarted: Boolean = true,
-    onStartTour: () -> Unit = {}
+    onStartTour: () -> Unit = {},
+    onOpenClients: () -> Unit = {},
+    onOpenExcel: () -> Unit = {}
 ) {
+    var showAllStops by remember { mutableStateOf(false) }
+    val visibleStops = if (showAllStops) route.stops else route.stops.take(COLLAPSED_STOP_COUNT)
     val activeStop = if (tourStarted) {
         route.stops.firstOrNull { it.visit.status == CollectionVisitStatus.SCHEDULED }
     } else {
@@ -649,7 +661,7 @@ fun DailyRouteScreen(
             }
         } else {
             itemsIndexed(
-                items = route.stops,
+                items = visibleStops,
                 key = { _, stop -> stop.visit.id.value }
             ) { index, stop ->
                 CollectionStopCard(
@@ -664,10 +676,56 @@ fun DailyRouteScreen(
                     onWhatsApp = stop.phone?.let { { onWhatsApp(stop) } }
                 )
             }
+            if (!showAllStops && route.stops.size > COLLAPSED_STOP_COUNT) {
+                item {
+                    TextButton(
+                        onClick = { showAllStops = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Voir les ${route.stops.size - COLLAPSED_STOP_COUNT} autres adresses",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Icon(Icons.Outlined.ExpandMore, contentDescription = null)
+                    }
+                }
+            }
         }
         }
 
         if (!tourStarted) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Gestion des abonnés & imports",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        FilledTonalButton(
+                            onClick = onOpenExcel,
+                            modifier = Modifier.weight(1f),
+                            shape = CircleShape
+                        ) {
+                            Icon(Icons.Outlined.UploadFile, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Importer Excel", maxLines = 1)
+                        }
+                        FilledTonalButton(
+                            onClick = onOpenClients,
+                            modifier = Modifier.weight(1f),
+                            shape = CircleShape
+                        ) {
+                            Icon(Icons.Outlined.Groups, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Clients", maxLines = 1)
+                        }
+                    }
+                }
+            }
             item {
                 Button(
                     onClick = onStartTour,
