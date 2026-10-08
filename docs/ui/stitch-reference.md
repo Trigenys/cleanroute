@@ -30,8 +30,18 @@ Parity is judged against the Stitch PNGs stored in [`docs/ui/stitch/`](stitch/),
 | `stitch/collecte-selection-zone.png` | Sélection zone de collecte | `ui/collection/CollectionScreens.kt` |
 | `stitch/clients-repertoire.png` | Répertoire clients | `ui/customer/CustomerScreens.kt` |
 | `stitch/nouveau-client.png` | Nouveau client / formulaire | `ui/customer/CustomerScreens.kt` |
+| `stitch/configuration-zone.png` | Configuration zone collecte | `ui/collection/CollectionScreens.kt` |
+| `stitch/fiche-client.png` | Fiche détail client | `ui/customer/CustomerScreens.kt` |
+| `stitch/paiements.png` | Paiements & impayés | `ui/payment/` |
+| `stitch/donnees-excel.png` | Données & Excel | `ui/data/` |
+| `stitch/nouveau-client-formulaire.png` | Nouveau client (variante annotée) | `ui/customer/CustomerScreens.kt` |
+| `stitch/accueil-tournee-active.png` | Accueil, tournée en cours (état actif) | `ui/dashboard/DashboardScreens.kt` |
+| `stitch/collecte-tournee-active.png` | Collecte, arrêt en cours | `ui/collection/CollectionScreens.kt` |
+| `stitch/clients-peuples.png` | Clients, liste peuplée | `ui/customer/CustomerScreens.kt` |
+| `stitch/plus-relances-impayes.png` | Plus : relances & impayés, import/sync | `ui/` (onglet Plus) |
+| `stitch/apercu-ecrans-initiaux.png` | Vue d'ensemble des 4 premiers écrans | — |
 
-Still missing from the repository: Configuration zone collecte, Fiche détail client, Paiements & impayés, Données & Excel.
+Les captures sont en basse résolution (≈ 230 px de large) : elles servent à la composition et à la hiérarchie, pas aux mesures au pixel.
 
 The reference screens use a Dakar context (+221, Médina, Plateau). CleanRoute targets Cameroon (+237, Douala neighbourhoods): parity applies to composition, hierarchy and styling, not to the illustrative locale data.
 
