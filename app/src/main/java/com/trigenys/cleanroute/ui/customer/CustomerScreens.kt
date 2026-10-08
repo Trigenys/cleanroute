@@ -373,7 +373,7 @@ private fun CustomerEmptyState(
                         .size(72.dp)
                         .rotate(-6f),
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -389,7 +389,7 @@ private fun CustomerEmptyState(
                         .align(Alignment.TopEnd)
                         .size(30.dp),
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
