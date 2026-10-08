@@ -86,11 +86,12 @@ Significant failures and near misses are recorded in `docs/engineering/lessons-l
 
 ## Landing page
 
-The public product page is deployed with GitHub Pages from `site/`.
+The public product page is built from `site/` and is being migrated to **Cloudflare Pages**. GitHub Pages remains the rollback path until the Cloudflare production deployment and custom-domain HTTPS are verified.
 
-- GitHub Pages fallback: https://trigenys.github.io/cleanroute/
-- Custom domain target: https://cleanroute.trigenys.com/
-- Deployment notes: [docs/deployment/github-pages.md](docs/deployment/github-pages.md)
+- Production domain: https://cleanroute.trigenys.com/
+- Cloudflare migration notes: [docs/deployment/cloudflare-pages.md](docs/deployment/cloudflare-pages.md)
+- Legacy GitHub Pages fallback: https://trigenys.github.io/cleanroute/
+- Legacy deployment notes: [docs/deployment/github-pages.md](docs/deployment/github-pages.md)
 
 The landing deliberately distinguishes shipped MVP features from mapping/routing spikes and the future remote-sync contract.
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
+import java.time.YearMonth
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
@@ -22,7 +23,8 @@ class MoreVisualTest {
                     contactService = null,
                     spreadsheetService = null,
                     innerPadding = PaddingValues(),
-                    initialSection = MoreSection.PAYMENTS
+                    initialSection = MoreSection.PAYMENTS,
+                    emptyLedgerPeriod = YearMonth.of(2026, 9)
                 )
             }
         }

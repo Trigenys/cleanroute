@@ -50,7 +50,8 @@ fun MoreRoute(
     contactService: CustomerContactService?,
     spreadsheetService: CustomerSpreadsheetService?,
     innerPadding: PaddingValues,
-    initialSection: MoreSection = MoreSection.PAYMENTS
+    initialSection: MoreSection = MoreSection.PAYMENTS,
+    emptyLedgerPeriod: YearMonth = YearMonth.now()
 ) {
     var sectionName by rememberSaveable {
         mutableStateOf(initialSection.name)
@@ -102,7 +103,7 @@ fun MoreRoute(
                     if (paymentRepository == null || contactService == null) {
                         PaymentsScreen(
                             entries = emptyList(),
-                            period = YearMonth.now(),
+                            period = emptyLedgerPeriod,
                             query = "",
                             loading = false,
                             errorMessage = null,
