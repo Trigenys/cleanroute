@@ -44,6 +44,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -115,7 +116,11 @@ fun CustomerDirectoryScreen(
     selectedSector: String? = null,
     onSectorSelected: (String?) -> Unit = {},
     onImportCustomers: () -> Unit = {},
-    onOpenCollection: () -> Unit = {}
+    onOpenCollection: () -> Unit = {},
+    outstandingByCustomer: Map<String, Long>? = null,
+    onCallCustomer: (CustomerDirectoryEntry) -> Unit = {},
+    onWhatsAppCustomer: (CustomerDirectoryEntry) -> Unit = {},
+    onCollectCustomer: (CustomerDirectoryEntry) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -213,7 +218,7 @@ fun CustomerDirectoryScreen(
             )
         }
 
-        if (sectors.isNotEmpty()) {
+        run {
             item {
                 Row(
                     modifier = Modifier
@@ -269,9 +274,14 @@ fun CustomerDirectoryScreen(
                 items = entries,
                 key = { it.customer.id.value }
             ) { entry ->
+                val id = entry.customer.id.value
                 CustomerRow(
                     entry = entry,
-                    onClick = { onCustomerSelected(entry) }
+                    onClick = { onCustomerSelected(entry) },
+                    outstandingXaf = outstandingByCustomer?.let { it[id] ?: 0L },
+                    onCall = entry.customer.phone?.let { { onCallCustomer(entry) } },
+                    onWhatsApp = entry.customer.phone?.let { { onWhatsAppCustomer(entry) } },
+                    onCollect = { onCollectCustomer(entry) }
                 )
             }
         }
@@ -476,8 +486,14 @@ private fun CustomerQuickTool(
 @Composable
 private fun CustomerRow(
     entry: CustomerDirectoryEntry,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    outstandingXaf: Long? = null,
+    onCall: (() -> Unit)? = null,
+    onWhatsApp: (() -> Unit)? = null,
+    onCollect: (() -> Unit)? = null
 ) {
+    val inArrears = (outstandingXaf ?: 0L) > 0L
+    val active = entry.customer.status == CustomerStatus.ACTIVE
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -486,8 +502,12 @@ private fun CustomerRow(
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         shadowElevation = 1.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -528,13 +548,64 @@ private fun CustomerRow(
                 }
             }
             StatusChip(
-                text = if (entry.customer.status == CustomerStatus.ACTIVE) "Actif" else "Suspendu",
-                tone = if (entry.customer.status == CustomerStatus.ACTIVE) {
-                    StatusTone.SUCCESS
-                } else {
-                    StatusTone.WARNING
-                }
+                text = when {
+                    !active -> "Suspendu"
+                    outstandingXaf == null -> "Actif"
+                    inArrears -> "Impayé"
+                    else -> "À jour"
+                },
+                tone = if (active && !inArrears) StatusTone.SUCCESS else StatusTone.WARNING
             )
+        }
+
+        if (active && outstandingXaf != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (inArrears) {
+                    FilledTonalButton(
+                        onClick = { onWhatsApp?.invoke() },
+                        enabled = onWhatsApp != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("Relance 1-clic", maxLines = 1)
+                    }
+                    Button(
+                        onClick = { onCollect?.invoke() },
+                        enabled = onCollect != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("Encaisser", maxLines = 1)
+                    }
+                } else {
+                    FilledTonalButton(
+                        onClick = { onCall?.invoke() },
+                        enabled = onCall != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Phone,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Appeler", maxLines = 1)
+                    }
+                    FilledTonalButton(
+                        onClick = { onWhatsApp?.invoke() },
+                        enabled = onWhatsApp != null,
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape
+                    ) {
+                        Text("WhatsApp", maxLines = 1)
+                    }
+                }
+            }
+        }
         }
     }
 }
