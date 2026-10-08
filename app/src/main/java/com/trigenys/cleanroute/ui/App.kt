@@ -26,6 +26,7 @@ import com.trigenys.cleanroute.data.transfer.CustomerSpreadsheetService
 import com.trigenys.cleanroute.domain.CollectionWorkflowRepository
 import com.trigenys.cleanroute.domain.CustomerRepository
 import com.trigenys.cleanroute.domain.DashboardRepository
+import com.trigenys.cleanroute.domain.OwnerDashboardSnapshot
 import com.trigenys.cleanroute.domain.PaymentRepository
 import com.trigenys.cleanroute.domain.RetentionRepository
 import com.trigenys.cleanroute.ui.collection.CollectionWorkflowRoute
@@ -38,6 +39,7 @@ import com.trigenys.cleanroute.ui.components.StatusChip
 import com.trigenys.cleanroute.ui.components.StatusTone
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryRoute
 import com.trigenys.cleanroute.ui.dashboard.DashboardRoute
+import com.trigenys.cleanroute.ui.dashboard.OwnerDashboardScreen
 import com.trigenys.cleanroute.ui.customer.CustomerDirectoryScreen
 import com.trigenys.cleanroute.ui.more.MoreRoute
 import com.trigenys.cleanroute.ui.more.MoreSection
@@ -45,6 +47,8 @@ import com.trigenys.cleanroute.ui.navigation.AppDestination
 import com.trigenys.cleanroute.ui.navigation.CleanRouteBottomBar
 import com.trigenys.cleanroute.ui.navigation.CleanRouteTopBar
 import com.trigenys.cleanroute.ui.theme.CleanRouteTheme
+import java.time.LocalDate
+import java.time.YearMonth
 
 @Composable
 fun App(
@@ -112,10 +116,24 @@ private fun CleanRouteShell(
         when (selectedDestination) {
             AppDestination.HOME -> {
                 if (dashboardRepository == null) {
-                    FoundationHome(
+                    OwnerDashboardScreen(
+                        snapshot = OwnerDashboardSnapshot(
+                            date = LocalDate.now(),
+                            servicePeriod = YearMonth.now(),
+                            collectionRecords = emptyList(),
+                            activeClients = emptyList(),
+                            receipts = emptyList(),
+                            arrears = emptyList(),
+                            newClients = emptyList(),
+                            zones = emptyList()
+                        ),
+                        loading = false,
+                        errorMessage = null,
                         innerPadding = innerPadding,
+                        onMetricSelected = {},
                         onOpenCollection = { onDestinationSelected(AppDestination.COLLECTION) },
-                        onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) }
+                        onOpenClients = { onDestinationSelected(AppDestination.CLIENTS) },
+                        onOpenPayments = { onOpenMoreSection(MoreSection.PAYMENTS) }
                     )
                 } else {
                     DashboardRoute(
@@ -205,109 +223,6 @@ private fun CleanRouteShell(
                     initialSection = moreSection
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun FoundationHome(
-    innerPadding: PaddingValues,
-    onOpenCollection: () -> Unit,
-    onOpenClients: () -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding),
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 24.dp,
-            bottom = 32.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "Bonjour 👋",
-                    style = MaterialTheme.typography.headlineLarge
-                )
-                Text(
-                    text = "Votre activité en un coup d’œil",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        item {
-            CleanRouteCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = "Aujourd’hui",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = "Choisissez une zone pour commencer",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    StatusChip(
-                        text = "Prêt hors connexion",
-                        tone = StatusTone.SUCCESS
-                    )
-                }
-
-                LinearProgressIndicator(
-                    progress = { 0f },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                CleanRoutePrimaryButton(
-                    text = "Commencer une tournée",
-                    onClick = onOpenCollection,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        item {
-            Text(
-                text = "Vue d’ensemble",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                KpiTile(
-                    label = "Clients actifs",
-                    value = "—",
-                    modifier = Modifier.weight(1f)
-                )
-                KpiTile(
-                    label = "Impayés",
-                    value = "—",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item {
-            CleanRouteSecondaryButton(
-                text = "Ajouter un client",
-                onClick = onOpenClients,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

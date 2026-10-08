@@ -173,7 +173,7 @@ fun OwnerDashboardScreen(
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "TEMPS RÉEL",
+                            text = "AUJOURD’HUI",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold
@@ -451,12 +451,30 @@ private fun DashboardKpiCard(
                 }
             }
 
-            Text(
-                text = value,
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            val amount = value.substringBeforeLast(' ', value)
+            val unit = value.substringAfterLast(' ', "")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = amount,
+                    modifier = Modifier.alignByBaseline(),
+                    style = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false
+                )
+                if (unit.isNotEmpty() && unit != amount) {
+                    Text(
+                        text = unit,
+                        modifier = Modifier.alignByBaseline(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

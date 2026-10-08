@@ -70,10 +70,10 @@ fun CleanRouteTopBar(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.width(10.dp))
 
             Surface(
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
@@ -97,7 +97,7 @@ fun CleanRouteTopBar(
                         } else {
                             "HORS CONNEXION"
                         },
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
