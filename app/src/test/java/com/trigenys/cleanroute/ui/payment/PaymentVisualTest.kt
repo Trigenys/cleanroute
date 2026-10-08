@@ -47,6 +47,10 @@ class PaymentVisualTest {
                     entries = sampleArrearsEntries(),
                     period = YearMonth.of(2026, 9),
                     query = "",
+                    summary = com.trigenys.cleanroute.domain.PaymentPeriodSummary(
+                        activeClients = 12,
+                        collectedXaf = 42_500
+                    ),
                     loading = false,
                     errorMessage = null,
                     innerPadding = PaddingValues(),
