@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.HomeWork
@@ -1507,10 +1508,12 @@ internal fun CustomerFormContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                StatusChip(
-                    text = "LOCAL DB",
-                    tone = StatusTone.SUCCESS
-                )
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = "Fermer"
+                    )
+                }
             }
         }
 
@@ -1601,7 +1604,8 @@ internal fun CustomerFormContent(
                     onValueChange = { monthlyFee = it.filter(Char::isDigit) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    placeholder = { Text("Montant en FCFA") },
+                    placeholder = { Text("Montant") },
+                    suffix = { Text("FCFA", fontWeight = FontWeight.Bold) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(18.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -1690,7 +1694,7 @@ internal fun CustomerFormContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .weight(0.8f)
