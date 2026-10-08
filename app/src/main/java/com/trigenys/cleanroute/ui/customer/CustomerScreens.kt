@@ -514,13 +514,18 @@ private fun CustomerRow(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = buildString {
-                        append(entry.zoneName)
-                        entry.customer.phone?.let { append(" · ").append(it) }
-                    },
+                    text = entry.zoneName,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                entry.customer.phone?.let { phone ->
+                    Text(
+                        text = phone.replace(' ', ' '),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
             }
             StatusChip(
                 text = if (entry.customer.status == CustomerStatus.ACTIVE) "Actif" else "Suspendu",
