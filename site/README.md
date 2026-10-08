@@ -1,15 +1,21 @@
 # CleanRoute landing page
 
-Static product landing page for CleanRoute, deployed with GitHub Pages.
+Static product landing page for CleanRoute.
 
 ## Source
 
 The page is kept in semantic HTML fragments under `site/src/` so the Stitch composition stays reviewable without introducing a frontend framework only for marketing.
 
-Build locally:
+Build the HTML-only landing locally:
 
 ```bash
-python site/build.py
+python3 site/build.py
+```
+
+Build the production Cloudflare bundle, including the checksum-verified `pilot-latest` APK:
+
+```bash
+python3 site/build_cloudflare.py
 ```
 
 The generated site is written to `site/dist/` and is not committed.
@@ -24,21 +30,17 @@ The landing must distinguish:
 
 Do not publish savings claims, encryption claims, automated messaging claims or routing/GPS claims unless they are backed by the product and representative evidence.
 
-## Public URLs
+## Hosting
 
-- GitHub Pages fallback: `https://trigenys.github.io/cleanroute/`
-- Custom domain target: `https://cleanroute.trigenys.com/`
+The production target is Cloudflare Pages:
 
-## Custom domain
+- production branch: `main`;
+- build command: `python3 site/build_cloudflare.py`;
+- build output directory: `site/dist`;
+- custom domain: `https://cleanroute.trigenys.com/`.
 
-For a GitHub Actions Pages deployment, configure the domain in **Repository Settings → Pages → Custom domain**.
+The production build downloads `pilot-latest/CleanRoute-pilot.apk` and its checksum from the public GitHub Release, verifies SHA-256, and only then places the APK in the Pages bundle.
 
-DNS for `trigenys.com`:
+GitHub Pages remains a temporary rollback path during the migration.
 
-```text
-Type:  CNAME
-Name:  cleanroute
-Value: trigenys.github.io
-```
-
-Set the GitHub custom domain before publishing the DNS CNAME. If the DNS provider supports proxying, start DNS-only until GitHub validates the domain and provisions HTTPS.
+See `docs/deployment/cloudflare-pages.md` for the cutover procedure and `docs/deployment/github-pages.md` for the legacy fallback.
