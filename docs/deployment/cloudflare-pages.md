@@ -35,6 +35,16 @@ In **Cloudflare → Workers & Pages → Create → Pages → Connect to Git**:
 
 No Cloudflare API token needs to be stored in GitHub when Cloudflare's Git integration owns the build.
 
+## Deploy Hook after each pilot release
+
+The Git integration builds on every push to `main`, but `build_cloudflare.py` downloads the `pilot-latest` asset at build time and the `Pilot APK` workflow replaces that asset about two minutes after the same push. Without an explicit second build, production keeps the previous APK (see `docs/engineering/lessons-learned.md`, 2026-11-10).
+
+1. In the Pages project open **Settings → Builds & deployments → Deploy hooks** and create a hook named `pilot-apk-published` on branch `main`.
+2. Copy the hook URL. It embeds a token: treat it as a secret and never commit it.
+3. In GitHub, add it as the repository secret `CLOUDFLARE_PAGES_DEPLOY_HOOK` (**Settings → Secrets and variables → Actions**).
+
+`pilot-apk.yml` calls the hook after `gh release upload`, then polls `https://cleanroute.trigenys.com/CleanRoute-pilot.apk.sha256` for up to ten minutes and fails if production still serves a different checksum. When the secret is absent the step emits a warning and succeeds, so the workflow keeps working on forks and before the hook exists.
+
 ## Custom domain and external DNS
 
 After the first successful Pages deployment:

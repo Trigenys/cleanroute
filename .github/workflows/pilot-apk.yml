@@ -88,3 +88,32 @@ jobs:
           fi
 
           gh release upload pilot-latest             release/CleanRoute-pilot.apk             release/CleanRoute-pilot.apk.sha256             release/commit-sha.txt             --clobber
+
+      - name: Trigger Cloudflare Pages rebuild against the published release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_PAGES_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK }}
+          PUBLIC_APK_BASE: https://cleanroute.trigenys.com
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_PAGES_DEPLOY_HOOK:-}" ]; then
+            echo "::warning title=Cloudflare rebuild skipped::Secret CLOUDFLARE_PAGES_DEPLOY_HOOK is not set. The production download may serve a stale APK until the next push to main. See docs/deployment/cloudflare-pages.md."
+            exit 0
+          fi
+
+          # Cloudflare's Git integration already built this push, racing the release upload above.
+          # A second build now downloads the asset that was just published.
+          curl -fsS -X POST "$CLOUDFLARE_PAGES_DEPLOY_HOOK" -o /dev/null
+
+          EXPECTED="$(awk '{print $1}' release/CleanRoute-pilot.apk.sha256)"
+          for _ in $(seq 1 40); do
+            SERVED="$(curl -fsSL "$PUBLIC_APK_BASE/CleanRoute-pilot.apk.sha256" 2>/dev/null | awk '{print $1}' || true)"
+            if [ "$SERVED" = "$EXPECTED" ]; then
+              echo "Production download serves the published APK ($EXPECTED)."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error title=Stale pilot APK on production::$PUBLIC_APK_BASE/CleanRoute-pilot.apk.sha256 still differs from the published release after 10 minutes. Check the Cloudflare Pages deployment, then retry the deploy hook."
+          exit 1
