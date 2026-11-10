@@ -114,3 +114,17 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 **Prevention rule:** anything that copies a release asset at build time must be triggered after the release is published, not by the same push. For Cloudflare: register a Deploy Hook on the Pages project, store its URL as a GitHub secret, and call it from the last step of `pilot-apk.yml`. Until then, verify `/CleanRoute-pilot.apk.sha256` against the release after every merge that touches `app/**`.
 
 **Generalized lesson:** two consumers of one event with an implicit order between them is a race. Chain them explicitly or make the consumer idempotent against the final state.
+
+## 2026-11-10 — Pilot APK followed the device dark theme and drew the top bar under the status bar
+
+**What happened:** on a real phone the Stitch-aligned build rendered in dark colours and the custom top bar was partly hidden behind the status bar. Every Roborazzi golden looked right.
+
+**Root cause:** `CleanRouteTheme` defaulted to `isSystemInDarkTheme()` although the product design is light-only, so any device with dark mode (manual, scheduled or battery saver) got an undesigned palette. `MainActivity` calls `enableEdgeToEdge()` (mandatory behaviour from targetSdk 35 anyway) but `CleanRouteTopBar` is a plain `Surface` + `Row`, not a Material `TopAppBar`, so nothing consumed the status-bar inset.
+
+**Why existing controls did not catch it:** Robolectric renders with zero window insets and the visual tests pin `darkTheme` explicitly, so neither default was ever exercised by CI. No one had installed the parity build on a device before the owner did.
+
+**Fix:** `CleanRouteTheme` defaults to light; `enableEdgeToEdge` forces light system bars (dark icons) on transparent backgrounds; the top bar row applies `statusBarsPadding()`.
+
+**Prevention rule:** any custom app-shell component that replaces a Material component takes over its inset handling explicitly. A theme default is a product decision written in code, not inherited from the device. Before a release handed to a human, install the APK on one real device and check the four shell edges.
+
+**Generalized lesson:** goldens prove layout, not the environment around it (insets, system theme, fonts). Keep one device smoke check in the release gate.

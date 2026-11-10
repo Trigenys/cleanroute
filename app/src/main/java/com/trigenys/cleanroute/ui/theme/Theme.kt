@@ -1,6 +1,5 @@
 package com.trigenys.cleanroute.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -190,7 +189,7 @@ private val CleanRouteShapes = Shapes(
 
 @Composable
 fun CleanRouteTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
