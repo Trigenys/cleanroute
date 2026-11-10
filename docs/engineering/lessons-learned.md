@@ -100,3 +100,17 @@ Do not turn this file into a raw error-log dump. The goal is institutional memor
 **Prevention rule:** any screen captured by Roborazzi receives its date/period as a parameter; tests never read the system clock.
 
 **Generalized lesson:** a golden that reads the clock is a test with an expiry date. Inject time at the boundary.
+
+## 2026-11-10 — Cloudflare Pages served a stale pilot APK after a release refresh
+
+**What happened:** `https://cleanroute.trigenys.com/CleanRoute-pilot.apk` still served a pre-Stitch build five weeks after the parity work merged, while `pilot-latest` on GitHub Releases held the current APK (`e1aed59`). Testers installing from the QR code saw the old interface.
+
+**Root cause:** two independent builds react to the same push on `main`. Cloudflare Pages (Git integration) runs `site/build_cloudflare.py`, which downloads the APK from the `pilot-latest` release at build time. The `Pilot APK` workflow replaces that release asset about two minutes after the push. Cloudflare finished first and captured the previous asset. No later push happened, so the stale copy was never rebuilt.
+
+**Why existing controls did not catch it:** `pages.yml` (GitHub Pages) runs on `workflow_run` after `Pilot APK` and is correctly ordered, but the production hostname moved to Cloudflare, which has no such ordering. The Cloudflare cutover checklist verifies the APK once, not after every release.
+
+**Fix:** a push to `main` rebuilds Cloudflare against the now-stable release (this entry).
+
+**Prevention rule:** anything that copies a release asset at build time must be triggered after the release is published, not by the same push. For Cloudflare: register a Deploy Hook on the Pages project, store its URL as a GitHub secret, and call it from the last step of `pilot-apk.yml`. Until then, verify `/CleanRoute-pilot.apk.sha256` against the release after every merge that touches `app/**`.
+
+**Generalized lesson:** two consumers of one event with an implicit order between them is a race. Chain them explicitly or make the consumer idempotent against the final state.
